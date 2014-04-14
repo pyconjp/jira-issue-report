@@ -1,0 +1,8 @@
+PyYAML==3.11
+jira==0.21
+oauthlib==0.6.1
+pit==0.3
+requests==2.2.1
+requests-oauthlib==0.4.0
+tlslite==0.4.6
+wsgiref==0.1.2
