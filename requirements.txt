@@ -1,8 +1,9 @@
 PyYAML==3.11
-jira==0.21
-oauthlib==0.6.1
+jira==0.25
+oauthlib==0.6.3
 pit==0.3
-requests==2.2.1
-requests-oauthlib==0.4.0
+requests==2.3.0
+requests-oauthlib==0.4.1
+six==1.7.2
 tlslite==0.4.6
 wsgiref==0.1.2
