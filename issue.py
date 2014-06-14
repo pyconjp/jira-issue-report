@@ -1,11 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from jira.client import JIRA
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from pit import Pit
-import pprint
+from jira.client import JIRA
+
+# 期限切れ
+EXPIRED_QUERY = 'project = UMA AND status in (Open, "In Progress", Reopened) AND due <= "0" ORDER BY due ASC, component ASC'
+# 一週間後に期限切れ
+WEEK_QUERY = 'project = UMA AND status in (Open, "In Progress", Reopened) AND due >= "0" AND due > "0" AND due <= 7d ORDER BY due ASC, component ASC'
 
 def issue_to_dict(issue):
+    """
+    issue から必要な値を取り出して、辞書に入れて返す
+    """
     issue_dict = {
         'key': issue.raw['key'],
         'url': issue.self,
@@ -28,17 +38,44 @@ def issue_to_dict(issue):
 
     return issue_dict
 
-def print_issue(issue_dict):
-    print u"{key}: {summary} {duedate} {name} {priority} {status} {component}".format(**issue_dict)
+def formatted_issue(issue_dict):
+    """
+    1件のissueを
+    """
+    return u"- {key}: {summary} {duedate} {name} {priority} {status} {component}\n".format(**issue_dict)
 
 def main(jira):
-    # 期限切れの issue を取得
-    for issue in jira.search_issues('project = UMA AND status in (Open, "In Progress", Reopened) AND due <= "0" ORDER BY component ASC, due ASC'):
-        issue_dict = issue_to_dict(issue)
-        print_issue(issue_dict)
 
-    #pp = pprint.PrettyPrinter(indent=2)
-    #pp.pprint(issue.raw)
+    # 期限切れの issue を取得
+    issues = []
+
+    text = u"期限切れチケット\n----------------\n"
+    for issue in jira.search_issues(EXPIRED_QUERY):
+        text += formatted_issue(issue_to_dict(issue))
+
+    text += u"""
+あと一週間で期限切れチケット
+----------------------------
+"""
+    for issue in jira.search_issues(WEEK_QUERY):
+        text += formatted_issue(issue_to_dict(issue))
+
+    #print text
+    me = 'takanory.net@gmail.com'
+    you = 'takanory.net@gmail.com'
+
+    msg = MIMEText(text.encode('utf-8'))
+    msg['Subject'] = 'PyCon JP 2014 の期限切れチケット一覧'
+    msg['From'] = me
+    msg['To'] = you
+
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.ehlo()
+    server.starttls()
+    server.ehlo()
+    server.login(me, 'password')
+    server.sendmail(me, [you], msg.as_string())
+    #s.close()
     
 if __name__ == '__main__':
     # ユーザー名とパスワードを取得
