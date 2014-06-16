@@ -61,7 +61,7 @@ def main(jira):
         text += formatted_issue(issue_to_dict(issue))
 
     #print text
-    me = 'takanory.net@gmail.com'
+    me = 'takanori@pycon.jp'
     you = 'takanory.net@gmail.com'
 
     msg = MIMEText(text.encode('utf-8'))
@@ -69,13 +69,8 @@ def main(jira):
     msg['From'] = me
     msg['To'] = you
 
-    server = smtplib.SMTP('smtp.gmail.com', 587)
-    server.ehlo()
-    server.starttls()
-    server.ehlo()
-    server.login(me, 'password')
+    server = smtplib.SMTP('localhost')
     server.sendmail(me, [you], msg.as_string())
-    #s.close()
     
 if __name__ == '__main__':
     # ユーザー名とパスワードを取得
