@@ -67,10 +67,10 @@ def main(jira):
 
     #print text
     me = 'takanori@pycon.jp'
-    you = 'takanory.net@gmail.com'
+    you = 'takanori@takanory.net'
 
-    msg = MIMEText(text.encode('utf-8'))
-    msg['Subject'] = 'PyCon JP 2014 の期限切れチケット一覧'
+    msg = MIMEText(text.encode('utf-8'), 'plain', 'utf-8')
+    msg['Subject'] = u'PyCon JP 2014 の期限切れチケット一覧'
     msg['From'] = me
     msg['To'] = you
 
