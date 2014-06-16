@@ -42,14 +42,19 @@ def formatted_issue(issue_dict):
     """
     1件のissueを
     """
-    return u"- {key}: {summary} {duedate} {name} {priority} {status} {component}\n".format(**issue_dict)
+    return u"""- {duedate} {key}: {summary}({name})
+""".format(**issue_dict)
 
 def main(jira):
 
     # 期限切れの issue を取得
     issues = []
 
-    text = u"期限切れチケット\n----------------\n"
+    text = u"""https://pyconjp.atlassian.net/
+
+期限切れチケット
+----------------
+"""
     for issue in jira.search_issues(EXPIRED_QUERY):
         text += formatted_issue(issue_to_dict(issue))
 
