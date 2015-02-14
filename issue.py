@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import configparser
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+import json
 
-from jira.client import JIRA
+from jira import JIRA
+import requests
 
 # 期限切れ
 EXPIRED_QUERY = 'project = HTJ AND status in (Open, "In Progress", Reopened) AND due <= "0" ORDER BY due ASC, component ASC'
@@ -15,11 +14,13 @@ WEEK_QUERY = 'project = HTJ AND status in (Open, "In Progress", Reopened) AND du
 
 def issue_to_dict(issue):
     """
-    issue から必要な値を取り出して、辞書に入れて返す
+    issue から必要な値を取り出して、いい感じの辞書にして返す
     """
+    # URL に変な文字列が付いているので削除する
+    url, none_ = issue.permalink().split(' - ')
     issue_dict = {
         'key': issue.raw['key'],
-        'url': issue.self,
+        'url': url,
         'summary': issue.raw['fields']['summary'],
         'created': issue.raw['fields']['created'],
         'updated': issue.raw['fields']['updated'],
@@ -41,48 +42,76 @@ def issue_to_dict(issue):
 
 def formatted_issue(issue_dict):
     """
-    1件のissueを
+    1件のissueを文字列にして返す
     """
-    return u"""- {duedate} {key}: {summary}({name})
-""".format(**issue_dict)
+    return u"- {duedate} <{url}|{key}>: {summary}(@{name})".format(**issue_dict)
 
-def main(jira):
-
-    # 期限切れの issue を取得
-    issues = []
-
-    text = u"""https://pyconjp.atlassian.net/
-
-期限切れチケット
-----------------
-"""
+def get_issues(username, password):
+    """
+    JIRAから期限切れ、もうすぐ期限切れのissueの
+    """
+    # JIRA に接続
+    options = {
+        'server': 'https://pyconjp.atlassian.net'
+        }
+    jira = JIRA(options=options, basic_auth=(username, password))
+    # 期限切れ
+    expired = []
     for issue in jira.search_issues(EXPIRED_QUERY):
-        text += formatted_issue(issue_to_dict(issue))
+        expired.append(issue_to_dict(issue))
 
-    text += u"""
-あと一週間で期限切れチケット
-----------------------------
-"""
+    # もうすぐ期限切れ
+    soon = []
     for issue in jira.search_issues(WEEK_QUERY):
-        text += formatted_issue(issue_to_dict(issue))
+        soon.append(issue_to_dict(issue))
+    return expired, soon
 
-    #print text
-    me = 'takanori@pycon.jp'
-    you = 'takanori@takanory.net'
+def main(username, password, webhook_url):
+    """
+    期限切れ、もうすぐ期限切れのチケットの一覧を取得してSlackで通知する
+    """
 
-    msg = MIMEText(text.encode('utf-8'), 'plain', 'utf-8')
-    msg['Subject'] = u'PyCon JP 2014 の期限切れチケット一覧'
-    msg['From'] = me
-    msg['To'] = you
+    # 期限切れ(expired)、もうすぐ期限切れ(soon)のチケット一覧を取得
+    expired, soon = get_issues(username, password)
 
-    server = smtplib.SMTP('localhost')
-    server.sendmail(me, [you], msg.as_string())
-    
+    expired_text = '期限切れチケット\n'
+    for issue in expired:
+        expired_text += formatted_issue(issue) + '\n'
+
+    soon_text = 'もうすぐ期限切れチケット\n'
+    for issue in soon:
+        soon_text += formatted_issue(issue) + '\n'
+
+    payload = {
+        'channel': 'slack-test',
+        'username': 'PyCon JP issue bot',
+        'icon_emoji': ':pyconjp:',
+        'fallback': 'PyCon JP 期限切れチケット',
+        'text': expired_text,
+        #'color': '#F35A00',
+        'link_names': 1,
+        }
+    r = requests.post(webhook_url, data=json.dumps(payload))
+    print(r.status_code)
+
+    payload = {
+        'channel': 'slack-test',
+        'username': 'PyCon JP issue bot',
+        'icon_emoji': ':pyconjp:',
+        'fallback': 'PyCon JP もうすぐ期限切れチケット',
+        'text': soon_text,
+        #'color': '#F35A00',
+        'link_names': 1,
+        }
+    r = requests.post(webhook_url, data=json.dumps(payload))
+    print(r.status_code)
+
 if __name__ == '__main__':
+    # config.ini からパラメーターを取得
     config = configparser.ConfigParser()
     config.read('config.ini')
     username = config['DEFAULT']['username']
     password = config['DEFAULT']['password']
     webhook_url = config['DEFAULT']['webhook_url']
-    #main(jira)
 
+    main(username, password, webhook_url)
