@@ -1,8 +1,6 @@
 jira==0.39
 oauthlib==0.7.2
 ordereddict==1.1
-pit==0.3
-PyYAML==3.11
 requests==2.5.1
 requests-oauthlib==0.4.2
 requests-toolbelt==0.3.1
