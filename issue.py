@@ -8,9 +8,9 @@ from pit import Pit
 from jira.client import JIRA
 
 # 期限切れ
-EXPIRED_QUERY = 'project = UMA AND status in (Open, "In Progress", Reopened) AND due <= "0" ORDER BY due ASC, component ASC'
+EXPIRED_QUERY = 'project = HTJ AND status in (Open, "In Progress", Reopened) AND due <= "0" ORDER BY due ASC, component ASC'
 # 一週間後に期限切れ
-WEEK_QUERY = 'project = UMA AND status in (Open, "In Progress", Reopened) AND due >= "0" AND due > "0" AND due <= 7d ORDER BY due ASC, component ASC'
+WEEK_QUERY = 'project = HTJ AND status in (Open, "In Progress", Reopened) AND due >= "0" AND due > "0" AND due <= 7d ORDER BY due ASC, component ASC'
 
 def issue_to_dict(issue):
     """
