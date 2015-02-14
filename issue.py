@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import configparser
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from pit import Pit
+
 from jira.client import JIRA
 
 # 期限切れ
@@ -78,14 +79,10 @@ def main(jira):
     server.sendmail(me, [you], msg.as_string())
     
 if __name__ == '__main__':
-    # ユーザー名とパスワードを取得
-    conf = Pit.get('jira',
-                   {'require':{'username':'username','password':'password'}})
-
-    options = {
-        'server': 'https://pyconjp.atlassian.net'
-        }
-    jira = JIRA(options=options,
-                basic_auth=(conf['username'], conf['password']))
-    main(jira)
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    username = config['DEFAULT']['username']
+    password = config['DEFAULT']['password']
+    webhook_url = config['DEFAULT']['webhook_url']
+    #main(jira)
 

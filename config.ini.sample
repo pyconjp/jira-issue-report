@@ -1,0 +1,4 @@
+[DEFAULT]
+username = JIRA username
+password = JIRA password
+webhook_url = Slack webhook URL
