@@ -6,3 +6,4 @@ include
 share
 .Python
 .venv
+config.ini
