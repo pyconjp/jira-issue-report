@@ -8,12 +8,12 @@ from jira import JIRA
 import requests
 
 # 期限切れの issue を取得する QUERY
-EXPIRED_QUERY = 'project = HTJ AND status in (Open, "In Progress", Reopened)'
-' AND due <= "0" ORDER BY due ASC, component ASC'
+EXPIRED_QUERY = '''project = HTJ AND status in (Open, "In Progress", Reopened)
+ AND due <= "0" ORDER BY due ASC, component ASC'''
 
 # 一週間後に期限切れの issue を取得する QUERY
-WEEK_QUERY = 'project = HTJ AND status in (Open, "In Progress", Reopened)'
-' AND due > "0" AND due <= 7d ORDER BY due ASC, component ASC'
+WEEK_QUERY = '''project = HTJ AND status in (Open, "In Progress", Reopened)
+ AND due > "0" AND due <= 7d ORDER BY due ASC, component ASC'''
 
 # JIRAとSlackで id が違う人の対応表
 JIRA_SLACK = {
@@ -100,6 +100,28 @@ def get_issues(username, password):
     return expired, soon
 
 
+def send_issue_message(title, issues, webhook_url):
+    """
+    チケットの一覧を Slack に送信する
+    """
+    # 通知用のテキストを生成
+    text = '{}({}件)\n'.format(title, len(issues))
+    for issue in issues:
+        text += formatted_issue(issue) + '\n'
+
+    # メッセージを Slack に送信
+    payload = {
+        'channel': 'slack-test',
+        'username': 'PyCon JP issue bot',
+        'icon_emoji': ':pyconjp:',
+        'fallback': title,
+        'text': text,
+        'link_names': 1,
+        }
+    r = requests.post(webhook_url, data=json.dumps(payload))
+    return r
+
+
 def main(username, password, webhook_url):
     """
     期限切れ、もうすぐ期限切れのチケットの一覧を取得してSlackで通知する
@@ -108,34 +130,8 @@ def main(username, password, webhook_url):
     # 期限切れ(expired)、もうすぐ期限切れ(soon)のチケット一覧を取得
     expired, soon = get_issues(username, password)
 
-    # 通知用のテキストを生成
-    expired_text = '期限切れチケット({}件)\n'.format(len(expired))
-    for issue in expired:
-        expired_text += formatted_issue(issue) + '\n'
-
-    soon_text = 'もうすぐ期限切れチケット({}件)\n'.format(len(soon))
-    for issue in soon:
-        soon_text += formatted_issue(issue) + '\n'
-
-    payload = {
-        'channel': 'slack-test',
-        'username': 'PyCon JP issue bot',
-        'icon_emoji': ':pyconjp:',
-        'fallback': 'PyCon JP 期限切れチケット',
-        'text': expired_text,
-        'link_names': 1,
-        }
-    requests.post(webhook_url, data=json.dumps(payload))
-
-    payload = {
-        'channel': 'slack-test',
-        'username': 'PyCon JP issue bot',
-        'icon_emoji': ':pyconjp:',
-        'fallback': 'PyCon JP もうすぐ期限切れチケット',
-        'text': soon_text,
-        'link_names': 1,
-        }
-    requests.post(webhook_url, data=json.dumps(payload))
+    send_issue_message('期限切れチケット', expired, webhook_url)
+    send_issue_message('もうすぐ期限切れチケット', soon, webhook_url)
 
 if __name__ == '__main__':
     # config.ini からパラメーターを取得
