@@ -7,10 +7,36 @@ import json
 from jira import JIRA
 import requests
 
-# 期限切れ
-EXPIRED_QUERY = 'project = HTJ AND status in (Open, "In Progress", Reopened) AND due <= "0" ORDER BY due ASC, component ASC'
-# 一週間後に期限切れ
-WEEK_QUERY = 'project = HTJ AND status in (Open, "In Progress", Reopened) AND due >= "0" AND due > "0" AND due <= 7d ORDER BY due ASC, component ASC'
+# 期限切れの issue を取得する QUERY
+EXPIRED_QUERY = 'project = HTJ AND status in (Open, "In Progress", Reopened)'
+' AND due <= "0" ORDER BY due ASC, component ASC'
+
+# 一週間後に期限切れの issue を取得する QUERY
+WEEK_QUERY = 'project = HTJ AND status in (Open, "In Progress", Reopened)'
+' AND due > "0" AND due <= 7d ORDER BY due ASC, component ASC'
+
+# JIRAとSlackで id が違う人の対応表
+JIRA_SLACK = {
+    'koedoyoshida': 'yoshida',
+    'checkpoint': 'sekine',
+    'Surgo': 'surgo',
+    'uni-q': 'uniq.hasizume',
+    'ryok.p': 'ryok',
+    'urasin2012': 'urasin',
+    'yoshicide': 'yoshi',
+    'satisfaction': 'ryomanzoku',
+    'yamaguchi-kat': 'katsushiyamaguchi',
+    'Toshihiro_nakatsuka': 'toshihironakatsuka',
+    'y0k0yama.syh': 'syh.yokoyama',
+    'redfigure': 'a.osanai',
+    'mrasu': 'hiroakisuginaka',
+    'fujiihideaki': 'foohee',
+    'kohei.itou': 'kohei',
+    'kokusyou.ri': 'djghost',
+    'tetsuyahasegawa': 'hasegawa',
+    'fix7211': 'sotoshigoto',
+}
+
 
 def issue_to_dict(issue):
     """
@@ -32,6 +58,10 @@ def issue_to_dict(issue):
         'status': issue.raw['fields']['status']['name'],
         }
 
+    # JIRA の id を Slack の id に変換する
+    name = issue_dict['name']
+    issue_dict['slack'] = JIRA_SLACK.get(name, name)
+
     components = []
     for component in issue.raw['fields']['components']:
         components.append(component['name'])
@@ -40,11 +70,14 @@ def issue_to_dict(issue):
 
     return issue_dict
 
+
 def formatted_issue(issue_dict):
     """
     1件のissueを文字列にして返す
     """
-    return u"- {duedate} <{url}|{key}>: {summary}(@{name})".format(**issue_dict)
+    issue_text = u"- {duedate} <{url}|{key}>: {summary}(@{slack})"
+    return issue_text.format(**issue_dict)
+
 
 def get_issues(username, password):
     """
@@ -66,6 +99,7 @@ def get_issues(username, password):
         soon.append(issue_to_dict(issue))
     return expired, soon
 
+
 def main(username, password, webhook_url):
     """
     期限切れ、もうすぐ期限切れのチケットの一覧を取得してSlackで通知する
@@ -74,11 +108,12 @@ def main(username, password, webhook_url):
     # 期限切れ(expired)、もうすぐ期限切れ(soon)のチケット一覧を取得
     expired, soon = get_issues(username, password)
 
-    expired_text = '期限切れチケット\n'
+    # 通知用のテキストを生成
+    expired_text = '期限切れチケット({}件)\n'.format(len(expired))
     for issue in expired:
         expired_text += formatted_issue(issue) + '\n'
 
-    soon_text = 'もうすぐ期限切れチケット\n'
+    soon_text = 'もうすぐ期限切れチケット({}件)\n'.format(len(soon))
     for issue in soon:
         soon_text += formatted_issue(issue) + '\n'
 
@@ -88,11 +123,9 @@ def main(username, password, webhook_url):
         'icon_emoji': ':pyconjp:',
         'fallback': 'PyCon JP 期限切れチケット',
         'text': expired_text,
-        #'color': '#F35A00',
         'link_names': 1,
         }
-    r = requests.post(webhook_url, data=json.dumps(payload))
-    print(r.status_code)
+    requests.post(webhook_url, data=json.dumps(payload))
 
     payload = {
         'channel': 'slack-test',
@@ -100,11 +133,9 @@ def main(username, password, webhook_url):
         'icon_emoji': ':pyconjp:',
         'fallback': 'PyCon JP もうすぐ期限切れチケット',
         'text': soon_text,
-        #'color': '#F35A00',
         'link_names': 1,
         }
-    r = requests.post(webhook_url, data=json.dumps(payload))
-    print(r.status_code)
+    requests.post(webhook_url, data=json.dumps(payload))
 
 if __name__ == '__main__':
     # config.ini からパラメーターを取得
