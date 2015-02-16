@@ -33,6 +33,8 @@ JIRA_SLACK = {
     'fix7211': 'sotoshigoto',
 }
 
+# JIRA サーバー
+SERVER='https://pyconjp.atlassian.net'
 
 def issue_to_dict(issue):
     """
@@ -129,9 +131,7 @@ def main(username, password, webhook_url):
     """
 
     # JIRA に接続
-    options = {
-        'server': 'https://pyconjp.atlassian.net'
-        }
+    options = {'server': SERVER}
     jira = JIRA(options=options, basic_auth=(username, password))
 
     # 対象となるJIRAプロジェクト: slack channelの一覧
@@ -142,11 +142,12 @@ def main(username, password, webhook_url):
         # 期限切れ(expired)、もうすぐ期限切れ(soon)のチケット一覧を取得
         expired, soon = get_expired_issues(jira, project)
 
-        send_issue_message(title='{} 期限切れチケット'.format(channel),
+        url = '<{}/browse/{}|{}> '.format(SERVER, project, project)
+        send_issue_message(title=url + '期限切れチケット',
                            issues=expired,
                            channel='slack-test',
                            webhook_url=webhook_url)
-        send_issue_message(title='{} もうすぐ期限切れチケット'.format(channel),
+        send_issue_message(title=url + 'もうすぐ期限切れチケット',
                            issues=soon,
                            channel='slack-test',
                            webhook_url=webhook_url)
