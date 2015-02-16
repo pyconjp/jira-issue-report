@@ -145,7 +145,7 @@ def main(username, password, webhook_url):
         url = '<{}/browse/{}|{}> '.format(SERVER, project, project)
         send_issue_message(title=url + '期限切れチケット',
                            issues=expired,
-                           channel=channe,
+                           channel=channel,
                            webhook_url=webhook_url)
         send_issue_message(title=url + 'もうすぐ期限切れチケット',
                            issues=soon,
