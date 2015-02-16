@@ -7,13 +7,9 @@ import json
 from jira import JIRA
 import requests
 
-# 期限切れの issue を取得する QUERY
-EXPIRED_QUERY = '''project = HTJ AND status in (Open, "In Progress", Reopened)
- AND due <= "0" ORDER BY due ASC, component ASC'''
-
-# 一週間後に期限切れの issue を取得する QUERY
-WEEK_QUERY = '''project = HTJ AND status in (Open, "In Progress", Reopened)
- AND due > "0" AND due <= 7d ORDER BY due ASC, component ASC'''
+# issue を取得する QUERY
+QUERY = '''project = {project} AND status in (Open, "In Progress", Reopened)
+ AND {due} ORDER BY due ASC, component ASC'''
 
 # JIRAとSlackで id が違う人の対応表
 JIRA_SLACK = {
@@ -79,28 +75,33 @@ def formatted_issue(issue_dict):
     return issue_text.format(**issue_dict)
 
 
-def get_issues(username, password):
+def get_issues(jira, query):
     """
-    JIRAから期限切れ、もうすぐ期限切れのissueの
+    JIRAから指定されたqueryに合致するissueの一覧を返す
     """
-    # JIRA に接続
-    options = {
-        'server': 'https://pyconjp.atlassian.net'
-        }
-    jira = JIRA(options=options, basic_auth=(username, password))
+    issues = []
+    for issue in jira.search_issues(query):
+        issues.append(issue_to_dict(issue))
+
+    return issues
+
+
+def get_expired_issues(jira, project):
+    """
+    JIRAから期限切れ、もうすぐ期限切れのissueの一覧をかえす
+    """
     # 期限切れ
-    expired = []
-    for issue in jira.search_issues(EXPIRED_QUERY):
-        expired.append(issue_to_dict(issue))
+    expired_query = QUERY.format(project=project, due='due <= "0"')
+    expired = get_issues(jira, expired_query)
 
     # もうすぐ期限切れ
-    soon = []
-    for issue in jira.search_issues(WEEK_QUERY):
-        soon.append(issue_to_dict(issue))
+    soon_query = QUERY.format(project=project, due='due > "0" AND due <= 7d')
+    soon = get_issues(jira, soon_query)
+
     return expired, soon
 
 
-def send_issue_message(title, issues, webhook_url):
+def send_issue_message(title, issues, channel, webhook_url):
     """
     チケットの一覧を Slack に送信する
     """
@@ -111,7 +112,7 @@ def send_issue_message(title, issues, webhook_url):
 
     # メッセージを Slack に送信
     payload = {
-        'channel': 'slack-test',
+        'channel': channel,
         'username': 'PyCon JP issue bot',
         'icon_emoji': ':pyconjp:',
         'fallback': title,
@@ -127,11 +128,28 @@ def main(username, password, webhook_url):
     期限切れ、もうすぐ期限切れのチケットの一覧を取得してSlackで通知する
     """
 
-    # 期限切れ(expired)、もうすぐ期限切れ(soon)のチケット一覧を取得
-    expired, soon = get_issues(username, password)
+    # JIRA に接続
+    options = {
+        'server': 'https://pyconjp.atlassian.net'
+        }
+    jira = JIRA(options=options, basic_auth=(username, password))
 
-    send_issue_message('期限切れチケット', expired, webhook_url)
-    send_issue_message('もうすぐ期限切れチケット', soon, webhook_url)
+    # 対象となるJIRAプロジェクト: slack channelの一覧
+    projects = {'HTJ': '#2015',
+                'ISSHA': '#committee',
+                }
+    for project, channel in projects.items():
+        # 期限切れ(expired)、もうすぐ期限切れ(soon)のチケット一覧を取得
+        expired, soon = get_expired_issues(jira, project)
+
+        send_issue_message(title='{} 期限切れチケット'.format(channel),
+                           issues=expired,
+                           channel='slack-test',
+                           webhook_url=webhook_url)
+        send_issue_message(title='{} もうすぐ期限切れチケット'.format(channel),
+                           issues=soon,
+                           channel='slack-test',
+                           webhook_url=webhook_url)
 
 if __name__ == '__main__':
     # config.ini からパラメーターを取得
