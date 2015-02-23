@@ -34,24 +34,30 @@ JIRA_SLACK = {
 }
 
 # JIRA サーバー
-SERVER='https://pyconjp.atlassian.net'
+SERVER = 'https://pyconjp.atlassian.net'
+
 
 def issue_to_dict(issue):
     """
     issue から必要な値を取り出して、いい感じの辞書にして返す
     """
-    # URL に変な文字列が付いているので削除する
-    url, none_ = issue.permalink().split(' - ')
+    # 担当者が存在しない場合はnameをNoneにする
+    assignee = issue.raw['fields']['assignee']
+    if assignee is None:
+        name = None
+    else:
+        name = assignee['name']
+
     issue_dict = {
         'key': issue.raw['key'],
-        'url': url,
+        'url': issue.permalink(),
         'summary': issue.raw['fields']['summary'],
         'created': issue.raw['fields']['created'],
         'updated': issue.raw['fields']['updated'],
         'duedate': issue.raw['fields']['duedate'],
-        'assignee': issue.raw['fields']['assignee']['displayName'],
-        'name': issue.raw['fields']['assignee']['name'],
-        'email': issue.raw['fields']['assignee']['emailAddress'],
+        'name': name,
+        # 'assignee': issue.raw['fields']['assignee']['displayName'],
+        # 'email': issue.raw['fields']['assignee']['emailAddress'],
         'priority': issue.raw['fields']['priority']['name'],
         'status': issue.raw['fields']['status']['name'],
         }
@@ -151,6 +157,7 @@ def main(username, password, webhook_url):
                            issues=soon,
                            channel=channel,
                            webhook_url=webhook_url)
+
 
 if __name__ == '__main__':
     # config.ini からパラメーターを取得
