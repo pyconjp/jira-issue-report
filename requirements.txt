@@ -1,4 +1,4 @@
-jira==0.39
+jira==0.40
 oauthlib==0.7.2
 ordereddict==1.1
 requests==2.5.1
