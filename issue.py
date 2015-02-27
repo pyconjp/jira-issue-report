@@ -31,6 +31,7 @@ JIRA_SLACK = {
     'kokusyou.ri': 'djghost',
     'tetsuyahasegawa': 'hasegawa',
     'fix7211': 'sotoshigoto',
+    'Ds110': 'ds110',
 }
 
 # JIRA サーバー
@@ -114,15 +115,15 @@ def send_issue_message(title, issues, channel, webhook_url):
     チケットの一覧を Slack に送信する
     """
     # 通知用のテキストを生成
-    text = '{}({}件)\n'.format(title, len(issues))
+    text = '{}ハ{}件 デス\n'.format(title, len(issues))
     for issue in issues:
         text += formatted_issue(issue) + '\n'
 
     # メッセージを Slack に送信
     payload = {
         'channel': channel,
-        'username': 'PyCon JP issue bot',
-        'icon_emoji': ':pyconjp:',
+        'username': 'JIRA bot',
+        'icon_emoji': ':jirabot:',
         'fallback': title,
         'text': text,
         'link_names': 1,
@@ -149,11 +150,11 @@ def main(username, password, webhook_url):
         expired, soon = get_expired_issues(jira, project)
 
         url = '<{}/browse/{}|{}> '.format(SERVER, project, project)
-        send_issue_message(title=url + '期限切れチケット',
+        send_issue_message(title=url + '「期限切れチケット」',
                            issues=expired,
                            channel=channel,
                            webhook_url=webhook_url)
-        send_issue_message(title=url + 'もうすぐ期限切れチケット',
+        send_issue_message(title=url + '「もうすぐ期限切れチケット」',
                            issues=soon,
                            channel=channel,
                            webhook_url=webhook_url)
