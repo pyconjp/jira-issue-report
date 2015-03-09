@@ -38,7 +38,10 @@ JIRA_SLACK = {
 # JIRA サーバー
 SERVER = 'https://pyconjp.atlassian.net'
 
-FACES = ('┗┫￣皿￣┣┛', '┗┃・ ■ ・┃┛', '┏┫￣皿￣┣┛', '┗┃・ ■ ・┃┛')
+# ロボット顔文字
+FACES = ('┗┫￣皿￣┣┛', '┗┃￣□￣；┃┓ ',
+         '┏┫￣皿￣┣┛', '┗┃・ ■ ・┃┛',
+         '┗┫＝皿[＋]┣┛')
 
 def issue_to_dict(issue):
     """
