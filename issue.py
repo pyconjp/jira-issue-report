@@ -3,6 +3,7 @@
 
 import configparser
 import json
+import random
 
 from jira import JIRA
 import requests
@@ -37,6 +38,7 @@ JIRA_SLACK = {
 # JIRA サーバー
 SERVER = 'https://pyconjp.atlassian.net'
 
+FACES = ('┗┫￣皿￣┣┛', '┗┃・ ■ ・┃┛', '┏┫￣皿￣┣┛', '┗┃・ ■ ・┃┛')
 
 def issue_to_dict(issue):
     """
@@ -115,7 +117,7 @@ def send_issue_message(title, issues, channel, webhook_url):
     チケットの一覧を Slack に送信する
     """
     # 通知用のテキストを生成
-    text = '{}ハ{}件 デス\n'.format(title, len(issues))
+    text = '{}ハ{}件 デス{}\n'.format(title, len(issues), random.choice(FACES))
     for issue in issues:
         text += formatted_issue(issue) + '\n'
 
