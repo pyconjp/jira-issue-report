@@ -28,6 +28,10 @@ PROJECTS = {
         'PyCon mini 広島': '#mini-hiroshima',
     },
 }
+PROJECT_CHANNEL = {
+    'HTJ': '#2015',
+    'ISSHA': '#committee'
+}
 
 # JIRAとSlackで id が違う人の対応表
 JIRA_SLACK = {
@@ -166,7 +170,7 @@ def send_message_to_slack(title, text, channel, webhook_url):
     """メッセージを Slack に送信
     """
     payload = {
-        'channel': 'slack-test', # channel,
+        'channel': channel,
         'username': 'JIRA bot',
         'icon_emoji': ':jirabot:',
         'fallback': title,
@@ -193,7 +197,7 @@ def main(username, password, webhook_url):
         project_expired, project_soon = get_expired_issues(jira, project)
 
         # プロジェクトごとのチケット状況をまとめる
-        summary = {}
+        summary = []
 
         # issueをコンポーネントごとに分ける
         for component, channel in components.items():
@@ -203,7 +207,6 @@ def main(username, password, webhook_url):
             if isinstance(component, tuple):
                 component = '、'.join(component)
 
-            summary[component] = (channel, len(expired), len(soon))
             header = '*{}* の'.format(component)
 
             # 期限切れチケットのメッセージを送信
@@ -215,6 +218,28 @@ def main(username, password, webhook_url):
             title = header + '「もうすぐ期限切れチケット」'
             text = create_issue_message(title, soon)
             send_message_to_slack(title, text, channel, webhook_url)
+
+            # チケット状況を保存
+            summary.append({'component': component,
+                            'channel': channel,
+                            'expired': len(expired),
+                            'soon': len(soon),
+                            })
+
+        # プロジェクト全体の状況をまとめる
+        title = 'チケット状況'
+        text = 'チケットノ状況デス\n'
+        for component in summary:
+            # 残りの件数によって天気マークを付ける
+            component['icon'] = ':sunny:'
+            if component['expired'] >= 10:
+                component['icon'] = ':umbrella:'
+            elif component['expired'] >= 5:
+                component['icon'] = ':cloud:'
+            
+            text += '{icon} *{component}* ({channel}) 期限切れ *{expired}* もうすぐ期限切れ *{soon}*\n'.format(**component)
+        channel = PROJECT_CHANNEL[project]
+        send_message_to_slack(title, text, channel, webhook_url)
 
 if __name__ == '__main__':
     # config.ini からパラメーターを取得
