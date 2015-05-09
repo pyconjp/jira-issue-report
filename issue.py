@@ -66,6 +66,7 @@ FACES = ('┗┫￣皿￣┣┛', '┗┃￣□￣；┃┓ ',
          '┏┫￣皿￣┣┛', '┗┃・ ■ ・┃┛',
          '┗┫＝皿[＋]┣┛')
 
+
 def issue_to_dict(issue):
     """
     issue から必要な値を取り出して、いい感じの辞書にして返す
@@ -129,6 +130,7 @@ def get_expired_issues(jira, project):
 
     return expired, soon
 
+
 def get_issues_by_component(issues, component):
     """指定されたコンポーネント(複数の場合もある)に関連づいたissueを返す
     """
@@ -144,7 +146,7 @@ def get_issues_by_component(issues, component):
         if len(component & set(issue['components'])) > 0:
             result.append(issue)
     return result
-            
+
 
 def formatted_issue(issue_dict):
     """
@@ -159,7 +161,7 @@ def create_issue_message(title, issues):
     チケットの一覧をメッセージを作成する
     """
     # 通知用のテキストを生成
-    text  = '{}ハ *{}件* デス{}\n'.format(title, len(issues), random.choice(FACES))
+    text = '{}ハ *{}件* デス{}\n'.format(title, len(issues), random.choice(FACES))
     for issue in issues:
         text += formatted_issue(issue) + '\n'
 
@@ -167,8 +169,10 @@ def create_issue_message(title, issues):
 
 
 def send_message_to_slack(title, text, channel, webhook_url):
-    """メッセージを Slack に送信
     """
+    メッセージを Slack に送信
+    """
+
     payload = {
         'channel': channel,
         'username': 'JIRA bot',
@@ -236,7 +240,7 @@ def main(username, password, webhook_url):
                 component['icon'] = ':umbrella:'
             elif component['expired'] >= 5:
                 component['icon'] = ':cloud:'
-            
+
             text += '{icon} *{component}* ({channel}) 期限切れ *{expired}* もうすぐ期限切れ *{soon}*\n'.format(**component)
         channel = PROJECT_CHANNEL[project]
         send_message_to_slack(title, text, channel, webhook_url)
