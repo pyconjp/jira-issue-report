@@ -12,8 +12,26 @@ import requests
 QUERY = '''project = {project} AND status in (Open, "In Progress", Reopened)
  AND {due} ORDER BY due ASC, component ASC'''
 
+# プロジェクト名とコンポーネント、チャンネルの一覧
+PROJECTS = {
+    'HTJ': {
+        # コンポーネント: チャンネル
+        '会場': '#t-venue',
+        '事務局': '#t-jimukyoku',
+        'プログラム': '#t-program',
+        'メディア': '#t-media',
+        ('全体', '環境', 'その他'): '#2015',
+    },
+    'ISSHA': {
+        '一般社団法人': '#committee',
+        'PyCon mini 札幌': '#mini-sapporo',
+        'PyCon mini 広島': '#mini-hiroshima',
+    },
+}
+
 # JIRAとSlackで id が違う人の対応表
 JIRA_SLACK = {
+    # JIRA ID: slack ID
     'koedoyoshida': 'yoshida',
     'checkpoint': 'sekine',
     'Surgo': 'surgo',
@@ -33,6 +51,7 @@ JIRA_SLACK = {
     'tetsuyahasegawa': 'hasegawa',
     'fix7211': 'sotoshigoto',
     'Ds110': 'ds110',
+    'angela': 'sayaka_angela',
 }
 
 # JIRA サーバー
@@ -81,14 +100,6 @@ def issue_to_dict(issue):
     return issue_dict
 
 
-def formatted_issue(issue_dict):
-    """
-    1件のissueを文字列にして返す
-    """
-    issue_text = u"- {duedate} <{url}|{key}>: {summary}(@{slack})"
-    return issue_text.format(**issue_dict)
-
-
 def get_issues(jira, query):
     """
     JIRAから指定されたqueryに合致するissueの一覧を返す
@@ -114,23 +125,53 @@ def get_expired_issues(jira, project):
 
     return expired, soon
 
-
-def send_issue_message(title, issues, channel, webhook_url):
+def get_issues_by_component(issues, component):
+    """指定されたコンポーネント(複数の場合もある)に関連づいたissueを返す
     """
-    チケットの一覧を Slack に送信する
+    result = []
+    for issue in issues:
+        # コンポーネントを set に変換する
+        if isinstance(component, str):
+            component = {component}
+        else:
+            component = set(component)
+
+        # 関連するコンポーネントが存在するissueを抜き出す
+        if len(component & set(issue['components'])) > 0:
+            result.append(issue)
+    return result
+            
+
+def formatted_issue(issue_dict):
+    """
+    1件のissueを文字列にして返す
+    """
+    issue_text = u"- {duedate} <{url}|{key}>: {summary}(@{slack})"
+    return issue_text.format(**issue_dict)
+
+
+def create_issue_message(title, issues):
+    """
+    チケットの一覧をメッセージを作成する
     """
     # 通知用のテキストを生成
-    text = '{}ハ{}件 デス{}\n'.format(title, len(issues), random.choice(FACES))
+    text  = '{}ハ *{}件* デス{}\n'.format(title, len(issues), random.choice(FACES))
     for issue in issues:
         text += formatted_issue(issue) + '\n'
 
-    # メッセージを Slack に送信
+    return text
+
+
+def send_message_to_slack(title, text, channel, webhook_url):
+    """メッセージを Slack に送信
+    """
     payload = {
-        'channel': channel,
+        'channel': 'slack-test', # channel,
         'username': 'JIRA bot',
         'icon_emoji': ':jirabot:',
         'fallback': title,
         'text': text,
+        'mrkdwn': True,
         'link_names': 1,
         }
     r = requests.post(webhook_url, data=json.dumps(payload))
@@ -146,24 +187,34 @@ def main(username, password, webhook_url):
     options = {'server': SERVER}
     jira = JIRA(options=options, basic_auth=(username, password))
 
-    # 対象となるJIRAプロジェクト: slack channelの一覧
-    projects = {'HTJ': '#2015',
-                'ISSHA': '#committee',
-                }
-    for project, channel in projects.items():
+    # 対象となるJIRAプロジェクト: コンポーネントの一覧
+    for project, components in PROJECTS.items():
         # 期限切れ(expired)、もうすぐ期限切れ(soon)のチケット一覧を取得
-        expired, soon = get_expired_issues(jira, project)
+        project_expired, project_soon = get_expired_issues(jira, project)
 
-        url = '<{}/browse/{}|{}> '.format(SERVER, project, project)
-        send_issue_message(title=url + '「期限切れチケット」',
-                           issues=expired,
-                           channel=channel,
-                           webhook_url=webhook_url)
-        send_issue_message(title=url + '「もうすぐ期限切れチケット」',
-                           issues=soon,
-                           channel=channel,
-                           webhook_url=webhook_url)
+        # プロジェクトごとのチケット状況をまとめる
+        summary = {}
 
+        # issueをコンポーネントごとに分ける
+        for component, channel in components.items():
+            expired = get_issues_by_component(project_expired, component)
+            soon = get_issues_by_component(project_soon, component)
+
+            if isinstance(component, tuple):
+                component = '、'.join(component)
+
+            summary[component] = (channel, len(expired), len(soon))
+            header = '*{}* の'.format(component)
+
+            # 期限切れチケットのメッセージを送信
+            title = header + '「期限切れチケット」'
+            text = create_issue_message(title, expired)
+            send_message_to_slack(title, text, channel, webhook_url)
+
+            # もうすぐ期限切れチケットのメッセージを送信
+            title = header + '「もうすぐ期限切れチケット」'
+            text = create_issue_message(title, soon)
+            send_message_to_slack(title, text, channel, webhook_url)
 
 if __name__ == '__main__':
     # config.ini からパラメーターを取得
