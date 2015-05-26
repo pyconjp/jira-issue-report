@@ -56,6 +56,8 @@ JIRA_SLACK = {
     'fix7211': 'sotoshigoto',
     'Ds110': 'ds110',
     'angela': 'sayaka_angela',
+    'Gon': 'gon',
+    'syh.yokoyama': 'syoheiyokoyama',
 }
 
 # JIRA サーバー
