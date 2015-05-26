@@ -174,7 +174,7 @@ def send_message_to_slack(title, text, channel, webhook_url):
     """
 
     payload = {
-        'channel': channel,
+        'channel': 'slack-test',  # channel,
         'username': 'JIRA bot',
         'icon_emoji': ':jirabot:',
         'fallback': title,
@@ -252,5 +252,6 @@ if __name__ == '__main__':
     username = config['DEFAULT']['username']
     password = config['DEFAULT']['password']
     webhook_url = config['DEFAULT']['webhook_url']
+    debug = config['DEFAULT'].getboolean('debug')
 
-    main(username, password, webhook_url)
+    main(username, password, webhook_url, debug)
