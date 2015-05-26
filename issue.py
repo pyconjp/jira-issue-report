@@ -168,13 +168,13 @@ def create_issue_message(title, issues):
     return text
 
 
-def send_message_to_slack(title, text, channel, webhook_url):
+def send_message_to_slack(title, text, channel, webhook_url, debug):
     """
     メッセージを Slack に送信
     """
 
     payload = {
-        'channel': 'slack-test',  # channel,
+        'channel': channel,
         'username': 'JIRA bot',
         'icon_emoji': ':jirabot:',
         'fallback': title,
@@ -182,11 +182,14 @@ def send_message_to_slack(title, text, channel, webhook_url):
         'mrkdwn': True,
         'link_names': 1,
         }
+    # debugモードの場合は slack-test に投げる
+    if debug:
+        payload['channel'] = 'slack-test'
     r = requests.post(webhook_url, data=json.dumps(payload))
     return r
 
 
-def main(username, password, webhook_url):
+def main(username, password, webhook_url, debug):
     """
     期限切れ、もうすぐ期限切れのチケットの一覧を取得してSlackで通知する
     """
@@ -216,12 +219,12 @@ def main(username, password, webhook_url):
             # 期限切れチケットのメッセージを送信
             title = header + '「期限切れチケット」'
             text = create_issue_message(title, expired)
-            send_message_to_slack(title, text, channel, webhook_url)
+            send_message_to_slack(title, text, channel, webhook_url, debug)
 
             # もうすぐ期限切れチケットのメッセージを送信
             title = header + '「もうすぐ期限切れチケット」'
             text = create_issue_message(title, soon)
-            send_message_to_slack(title, text, channel, webhook_url)
+            send_message_to_slack(title, text, channel, webhook_url, debug)
 
             # チケット状況を保存
             summary.append({'component': component,
@@ -243,7 +246,7 @@ def main(username, password, webhook_url):
 
             text += '{icon} *{component}* ({channel}) 期限切れ *{expired}* もうすぐ期限切れ *{soon}*\n'.format(**component)
         channel = PROJECT_CHANNEL[project]
-        send_message_to_slack(title, text, channel, webhook_url)
+        send_message_to_slack(title, text, channel, webhook_url, debug)
 
 if __name__ == '__main__':
     # config.ini からパラメーターを取得
