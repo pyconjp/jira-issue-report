@@ -46,7 +46,7 @@ JIRA_SLACK = {
     'satisfaction': 'ryomanzoku',
     'yamaguchi-kat': 'katsushiyamaguchi',
     'Toshihiro_nakatsuka': 'toshihironakatsuka',
-    'y0k0yama.syh': 'syh.yokoyama',
+    'y0k0yama.syh': 'syoheiyokoyama',
     'redfigure': 'a.osanai',
     'mrasu': 'hiroakisuginaka',
     'fujiihideaki': 'foohee',
@@ -57,7 +57,6 @@ JIRA_SLACK = {
     'Ds110': 'ds110',
     'angela': 'sayaka_angela',
     'Gon': 'gon',
-    'syh.yokoyama': 'syoheiyokoyama',
     'massa142': 'arai',
 }
 
