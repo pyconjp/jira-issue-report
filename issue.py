@@ -14,6 +14,14 @@ QUERY = '''project = {project} AND status in (Open, "In Progress", Reopened)
 
 # プロジェクト名とコンポーネント、チャンネルの一覧
 PROJECTS = {
+    'SAR': {
+        # コンポーネント: チャンネル
+        '1.事務局': '#t-jimukyoku',
+        '2.会場': '#t-venue',
+        '3.プログラム': '#t-program',
+        '4.メディア': '#t-media',
+        ('0.全体', '5.環境', '9.その他'): '#2016',
+    },
     'HTJ': {
         # コンポーネント: チャンネル
         '会場': '#t-venue',
@@ -25,10 +33,10 @@ PROJECTS = {
     'ISSHA': {
         '一般社団法人': '#committee',
         'PyCon mini 札幌': '#mini-sapporo',
-        'PyCon mini 広島': '#mini-hiroshima',
     },
 }
 PROJECT_CHANNEL = {
+    'SAR': '#2016',
     'HTJ': '#2015',
     'ISSHA': '#committee'
 }
