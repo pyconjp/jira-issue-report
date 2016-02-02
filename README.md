@@ -3,6 +3,8 @@
 issue.py post JIRA issue list message to Slack channel.
 
 ```
+$ git clone https://github.com/pyconjp/jira-issue-report.git
+$ cd jira-issue-report
 $ virtualenv -p python3 env
 $ . env/bin/activate
 (env)$ pip install -r requirements.txt
