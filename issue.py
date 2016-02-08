@@ -23,15 +23,11 @@ PROJECTS = {
     },
     'HTJ': {
         # コンポーネント: チャンネル
-        '会場': '#t-venue',
         '事務局': '#t-jimukyoku',
         'プログラム': '#t-program',
-        'メディア': '#t-media',
-        ('全体', '環境', 'その他'): '#2015',
     },
     'ISSHA': {
         '一般社団法人': '#committee',
-        'PyCon mini 札幌': '#mini-sapporo',
     },
 }
 
