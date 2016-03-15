@@ -27,7 +27,8 @@ PROJECTS = {
         'プログラム': '#t-program',
     },
     'ISSHA': {
-        ('一般社団法人', '地方チュートリアル'): '#committee',
+        '一般社団法人': '#committee',
+        '地方チュートリアル': '#tutorial-jungyo',
     },
 }
 
