@@ -28,7 +28,7 @@ PROJECTS = {
     },
     'ISSHA': {
         '一般社団法人': '#committee',
-        '地方チュートリアル': '#bootcamp',
+        'Python Boot Camp': '#bootcamp',
     },
 }
 
