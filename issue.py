@@ -49,6 +49,8 @@ JIRA_SLACK = {
     'angela': 'sayaka_angela',
     'massa142': 'arai',
     'yasushihashimoto': 'yhashimoto',
+    'yutaro.muta': 'yutaro',
+    'rhoboro': 'reisuyama ',
 }
 
 # JIRA サーバー
