@@ -45,6 +45,7 @@ JIRA_SLACK = {
     'yasushihashimoto': 'yhashimoto',
     'yutaro.muta': 'yutaro',
     'rhoboro': 'reisuyama ',
+    'manamionoda': 'onoda',
 }
 
 # JIRA サーバー
