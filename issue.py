@@ -21,11 +21,6 @@ PROJECTS = {
         '4.メディア': '#t-media',
         ('0.全体', '5.環境', '9.その他'): '#2016',
     },
-    'HTJ': {
-        # コンポーネント: チャンネル
-        '事務局': '#t-jimukyoku',
-        'プログラム': '#t-program',
-    },
     'ISSHA': {
         '一般社団法人': '#committee',
         'Python Boot Camp': '#bootcamp',
@@ -34,7 +29,6 @@ PROJECTS = {
 
 PROJECT_CHANNEL = {
     'SAR': '#2016',
-    'HTJ': '#2015',
     'ISSHA': '#committee'
 }
 
