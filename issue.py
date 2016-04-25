@@ -13,18 +13,18 @@ QUERY = '''project = {project} AND status in (Open, "In Progress", Reopened)
 
 # プロジェクト名とコンポーネント、チャンネルの一覧
 PROJECTS = {
-    'SAR': {
-        # コンポーネント: チャンネル
-        '1.事務局': '#t-jimukyoku',
-        '2.会場': '#t-venue',
-        '3.プログラム': '#t-program',
-        '4.メディア': '#t-media',
-        ('0.全体', '5.環境', '9.その他'): '#2016',
-    },
-    'ISSHA': {
-        '一般社団法人': '#committee',
-        'Python Boot Camp': '#bootcamp',
-    },
+    'SAR': [
+        # (コンポーネント, チャンネル)
+        ('1.事務局', '#t-jimukyoku'),
+        ('2.会場', '#t-venue'),
+        ('3.プログラム', '#t-program'),
+        ('4.メディア', '#t-media'),
+        (('0.全体', '5.環境', '9.その他'), '#2016'),
+    ],
+    'ISSHA': [
+        ('一般社団法人', '#committee'),
+        ('Python Boot Camp', '#bootcamp'),
+    ],
 }
 
 PROJECT_CHANNEL = {
@@ -198,7 +198,7 @@ def main(username, password, webhook_url, debug):
         summary = []
 
         # issueをコンポーネントごとに分ける
-        for component, channel in components.items():
+        for component, channel in components:
             expired = get_issues_by_component(project_expired, component)
             soon = get_issues_by_component(project_soon, component)
 
