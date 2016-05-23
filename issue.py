@@ -47,6 +47,7 @@ JIRA_SLACK = {
     'rhoboro': 'suyamar',
     'manamionoda': 'onoda',
     'shuyamotouchi': 'motouchi',
+    'makoto-kimura': 'kimura',
 }
 
 # JIRA サーバー
