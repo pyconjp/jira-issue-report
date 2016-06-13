@@ -48,6 +48,7 @@ JIRA_SLACK = {
     'manamionoda': 'onoda',
     'shuyamotouchi': 'motouchi',
     'makoto-kimura': 'kimura',
+    'silversky': 'yebihara',
 }
 
 # JIRA サーバー
