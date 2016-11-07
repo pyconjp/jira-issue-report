@@ -13,6 +13,10 @@ QUERY = '''project = {project} AND status in (Open, "In Progress", Reopened)
 
 # プロジェクト名とコンポーネント、チャンネルの一覧
 PROJECTS = {
+    'TRI': [
+        # (コンポーネント, チャンネル)
+        (('0.全体', '4.システム', '9.その他'), '#2017'),
+    ],
     'SAR': [
         # (コンポーネント, チャンネル)
         ('1.事務局', '#t-jimukyoku'),
@@ -23,11 +27,13 @@ PROJECTS = {
     ],
     'ISSHA': [
         ('一般社団法人', '#committee'),
-        ('Python Boot Camp', '#bootcamp'),
+        ('Python Boot Camp', '#pycamp'),
     ],
 }
 
+# プロジェクトのメインチャンネル
 PROJECT_CHANNEL = {
+    'TRI': '#2017',
     'SAR': '#2016',
     'ISSHA': '#committee'
 }
@@ -51,6 +57,11 @@ JIRA_SLACK = {
     'silversky': 'yebihara',
     'denari01': 'denari',
     'cs_toku': 'toku',
+    'Hidetomo Hosono': 'h12o',
+    'Arisa Niitsuma': 'd01tsumath',
+    'Okuda Yukio': 'skiyuki',
+    'ryok.p': 'ryok',
+    'Tsubasa NAGATA': 'nagata',
 }
 
 # JIRA サーバー
