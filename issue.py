@@ -250,9 +250,11 @@ def main(username, password, webhook_url, debug):
             elif component['expired'] >= 5:
                 component['icon'] = ':cloud:'
 
-            text += '{icon} *{component}* ({channel}) 期限切れ *{expired}* もうすぐ期限切れ *{soon}*\n'.format(**component)
+            text += '{icon} *{component}* ({channel}) 期限切れ *{expired}* '\
+                    'もうすぐ期限切れ *{soon}*\n'.format(**component)
         channel = PROJECT_CHANNEL[project]
         send_message_to_slack(title, text, channel, webhook_url, debug)
+
 
 if __name__ == '__main__':
     # config.ini からパラメーターを取得
