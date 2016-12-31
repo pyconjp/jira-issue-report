@@ -225,7 +225,7 @@ def main(username, password, webhook_url, debug):
             if isinstance(component, tuple):
                 component = '、'.join(component)
 
-            header = '*{}* の'.format(component)
+            header = '*{}/{}* の'.format(project, component)
 
             # 期限切れチケットのメッセージを送信
             title = header + '「期限切れチケット」'
@@ -246,7 +246,7 @@ def main(username, password, webhook_url, debug):
 
         # プロジェクト全体の状況をまとめる
         title = 'チケット状況'
-        text = 'チケットノ状況デス\n'
+        text = '*{}* ノチケット状況デス\n'.format(project)
         for component in summary:
             # 残りの件数によって天気マークを付ける
             component['icon'] = ':sunny:'
