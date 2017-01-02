@@ -19,7 +19,7 @@ PROJECTS = {
         ('1.事務局', '#t-jimukyoku'),
         ('2.会場', '#t-venue'),
         ('3.プログラム', '#t-program'),
-        ('4.システム', '#t-sysytem'),
+        ('4.システム', '#t-system'),
         ('5.デザイン・グッズ', '#design'),
     ],
     'SAR': [
@@ -67,6 +67,7 @@ JIRA_SLACK = {
     'Okuda Yukio': 'skiyuki',
     'ryok.p': 'ryok',
     'Tsubasa NAGATA': 'nagata',
+    'Oda Ryohei': 'ryoheioda',
 }
 
 # JIRA サーバー
