@@ -69,6 +69,8 @@ JIRA_SLACK = {
     'Oda Ryohei': 'ryoheioda',
     'KANAE YAMASHITA': 'kanan',
     'Yosuke Nakabayashi': 'yosken900',
+    'Yuki Tanaka': 'yu-pon',
+    'Emi Niimura': 'niimura',
 }
 
 # JIRA サーバー
