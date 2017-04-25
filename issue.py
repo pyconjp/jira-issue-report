@@ -64,13 +64,20 @@ JIRA_SLACK = {
     'Hidetomo Hosono': 'h12o',
     'Arisa Niitsuma': 'd01tsumath',
     'Okuda Yukio': 'skiyuki',
-    'ryok.p': 'ryok',
+    'ryok.p': 'rkaji',
     'Tsubasa NAGATA': 'nagata',
     'Oda Ryohei': 'ryoheioda',
     'KANAE YAMASHITA': 'kanan',
-    'Yosuke Nakabayashi': 'yosken900',
+    'Yosuke Nakabayashi': 'yosuke_bayashi',
     'Yuki Tanaka': 'yu-pon',
     'Emi Niimura': 'niimura',
+    'Kobayashi Masahiko': 'masahiko',
+    'Akira Taniguchi': 'akira_taniguchi',
+    'Youhei Sakurai': 'sakurai.youhei',
+    'kitamura.tomokazu.p': 'kitamura',
+    'Yamada Keiichi': 'keiichi',
+    'Hisahiro Ohmura': 'ohmura',
+    'LE TUAN ANH': 'anh',
 }
 
 # JIRA サーバー
