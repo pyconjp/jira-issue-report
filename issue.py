@@ -42,46 +42,11 @@ PROJECT_CHANNEL = {
     'ISSHA': '#committee'
 }
 
-# JIRAとSlackで id が違う人の対応表
-JIRA_SLACK = {
-    # JIRA ID: slack ID
-    'koedoyoshida': 'yoshida',
-    'checkpoint': 'sekine',
-    'Surgo': 'surgo',
-    'satisfaction': 'manzoku',
-    'Ds110': 'ds110',
-    'angela': 'sayaka_angela',
-    'massa142': 'arai',
-    'yasushihashimoto': 'yhashimoto',
-    'yutaro.muta': 'yutaro',
-    'rhoboro': 'suyamar',
-    'manamionoda': 'onoda',
-    'shuyamotouchi': 'motouchi',
-    'makoto-kimura': 'kimura',
-    'silversky': 'yebihara',
-    'denari01': 'denari',
-    'cs_toku': 'toku',
-    'Hidetomo Hosono': 'h12o',
-    'Arisa Niitsuma': 'd01tsumath',
-    'Okuda Yukio': 'skiyuki',
-    'ryok.p': 'rkaji',
-    'Tsubasa NAGATA': 'nagata',
-    'Oda Ryohei': 'ryoheioda',
-    'KANAE YAMASHITA': 'kanan',
-    'Yosuke Nakabayashi': 'yosuke_bayashi',
-    'Yuki Tanaka': 'yu-pon',
-    'Emi Niimura': 'niimura',
-    'Kobayashi Masahiko': 'masahiko',
-    'Akira Taniguchi': 'akira_taniguchi',
-    'Youhei Sakurai': 'sakurai.youhei',
-    'kitamura.tomokazu.p': 'kitamura',
-    'Yamada Keiichi': 'keiichi',
-    'Hisahiro Ohmura': 'ohmura',
-    'LE TUAN ANH': 'anh',
-}
-
 # JIRA サーバー
 SERVER = 'https://pyconjp.atlassian.net'
+
+# Slack API
+SLACK_API = 'https://slack.com/api/'
 
 # ロボット顔文字
 FACES = ('┗┫￣皿￣┣┛', '┗┃￣□￣；┃┓ ',
@@ -89,16 +54,18 @@ FACES = ('┗┫￣皿￣┣┛', '┗┃￣□￣；┃┓ ',
          '┗┫＝皿[＋]┣┛')
 
 
-def issue_to_dict(issue):
+def issue_to_dict(jira, issue, users):
     """
     issue から必要な値を取り出して、いい感じの辞書にして返す
     """
-    # 担当者が存在しない場合はnameをNoneにする
+    # 担当者が存在しない場合はname,emailをNoneにする
     assignee = issue.raw['fields']['assignee']
     if assignee is None:
         name = None
+        email = None
     else:
         name = assignee['name']
+        email = assignee['emailAddress']
 
     issue_dict = {
         'key': issue.raw['key'],
@@ -115,9 +82,10 @@ def issue_to_dict(issue):
         }
 
     # JIRA の id を Slack の id に変換する
-    name = issue_dict['name']
-    issue_dict['slack'] = JIRA_SLACK.get(name, name)
-
+    if email is not None and users is not None:
+        slack_name = search_user_name_by_email(email, users)
+        issue_dict['slack'] = slack_name if slack_name is not None else name
+            
     components = []
     for component in issue.raw['fields']['components']:
         components.append(component['name'])
@@ -127,34 +95,35 @@ def issue_to_dict(issue):
     return issue_dict
 
 
-def get_issues(jira, query):
+def get_issues(jira, query, users):
     """
     JIRAから指定されたqueryに合致するissueの一覧を返す
     """
     issues = []
     for issue in jira.search_issues(query):
-        issues.append(issue_to_dict(issue))
+        issues.append(issue_to_dict(jira, issue, users))
 
     return issues
 
 
-def get_expired_issues(jira, project):
+def get_expired_issues(jira, project, users):
     """
     JIRAから期限切れ、もうすぐ期限切れのissueの一覧をかえす
     """
     # 期限切れ
     expired_query = QUERY.format(project=project, due='due <= "0"')
-    expired = get_issues(jira, expired_query)
+    expired = get_issues(jira, expired_query, users)
 
     # もうすぐ期限切れ
     soon_query = QUERY.format(project=project, due='due > "0" AND due <= 7d')
-    soon = get_issues(jira, soon_query)
+    soon = get_issues(jira, soon_query, users)
 
     return expired, soon
 
 
 def get_issues_by_component(issues, component):
-    """指定されたコンポーネント(複数の場合もある)に関連づいたissueを返す
+    """
+    指定されたコンポーネント(複数の場合もある)に関連づいたissueを返す
     """
     result = []
     for issue in issues:
@@ -168,6 +137,31 @@ def get_issues_by_component(issues, component):
         if len(component & set(issue['components'])) > 0:
             result.append(issue)
     return result
+
+
+def get_users_from_slack(token):
+    """
+    Slack上のUserListを取得
+    """
+    url = SLACK_API + 'users.list'
+
+    payload = {'token': token}
+
+    response = requests.get(url, payload)
+    json = response.json()
+
+    return json['members']
+
+
+def search_user_name_by_email(email, users):
+    """
+    Slack上のUserList内をemailアドレスで検索
+    """
+    for user in users:
+        slack_email = user['profile'].get('email')
+        if slack_email is not None and slack_email == email:
+            return  user['name']
+    return None
 
 
 def formatted_issue(issue_dict):
@@ -194,7 +188,7 @@ def send_message_to_slack(title, text, channel, webhook_url, debug):
     """
     メッセージを Slack に送信
     """
-
+    print(text)
     payload = {
         'channel': channel,
         'username': 'JIRA bot',
@@ -211,7 +205,7 @@ def send_message_to_slack(title, text, channel, webhook_url, debug):
     return r
 
 
-def main(username, password, webhook_url, debug):
+def main(username, password, webhook_url, token, debug):
     """
     期限切れ、もうすぐ期限切れのチケットの一覧を取得してSlackで通知する
     """
@@ -220,10 +214,13 @@ def main(username, password, webhook_url, debug):
     options = {'server': SERVER}
     jira = JIRA(options=options, basic_auth=(username, password))
 
+    # Slack から UserListを取得
+    users = get_users_from_slack(token)
+
     # 対象となるJIRAプロジェクト: コンポーネントの一覧
     for project, components in PROJECTS.items():
         # 期限切れ(expired)、もうすぐ期限切れ(soon)のチケット一覧を取得
-        project_expired, project_soon = get_expired_issues(jira, project)
+        project_expired, project_soon = get_expired_issues(jira, project, users)
 
         # プロジェクトごとのチケット状況をまとめる
         summary = []
@@ -279,6 +276,7 @@ if __name__ == '__main__':
     username = config['DEFAULT']['username']
     password = config['DEFAULT']['password']
     webhook_url = config['DEFAULT']['webhook_url']
+    token = config['DEFAULT']['token']
     debug = config['DEFAULT'].getboolean('debug')
 
-    main(username, password, webhook_url, debug)
+    main(username, password, webhook_url, token, debug)
