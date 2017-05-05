@@ -83,8 +83,7 @@ def issue_to_dict(jira, issue, users):
 
     # JIRA の id を Slack の id に変換する
     if email is not None and users is not None:
-        slack_name = search_user_name_by_email(email, users)
-        issue_dict['slack'] = slack_name if slack_name is not None else name
+        issue_dict['slack'] = users.get(email, name)
             
     components = []
     for component in issue.raw['fields']['components']:
@@ -149,19 +148,10 @@ def get_users_from_slack(token):
 
     response = requests.get(url, payload)
     json = response.json()
+    
+    users = {m['profile'].get('email'): m['name'] for m in json['members']}
 
-    return json['members']
-
-
-def search_user_name_by_email(email, users):
-    """
-    Slack上のUserList内をemailアドレスで検索
-    """
-    for user in users:
-        slack_email = user['profile'].get('email')
-        if slack_email is not None and slack_email == email:
-            return  user['name']
-    return None
+    return users
 
 
 def formatted_issue(issue_dict):
@@ -184,12 +174,14 @@ def create_issue_message(title, issues):
     return text
 
 
-def send_message_to_slack(title, text, channel, webhook_url, debug):
+def send_message_to_slack(title, text, channel, token, debug):
     """
     メッセージを Slack に送信
     """
     print(text)
+    url = SLACK_API + 'chat.postMessage'
     payload = {
+        'token': token,
         'channel': channel,
         'username': 'JIRA bot',
         'icon_emoji': ':jirabot:',
@@ -201,11 +193,11 @@ def send_message_to_slack(title, text, channel, webhook_url, debug):
     # debugモードの場合は slack-test に投げる
     if debug:
         payload['channel'] = 'slack-test'
-    r = requests.post(webhook_url, data=json.dumps(payload))
+    r = requests.post(url, payload)
     return r
 
 
-def main(username, password, webhook_url, token, debug):
+def main(username, password, token, debug):
     """
     期限切れ、もうすぐ期限切れのチケットの一覧を取得してSlackで通知する
     """
@@ -238,12 +230,12 @@ def main(username, password, webhook_url, token, debug):
             # 期限切れチケットのメッセージを送信
             title = header + '「期限切れチケット」'
             text = create_issue_message(title, expired)
-            send_message_to_slack(title, text, channel, webhook_url, debug)
+            send_message_to_slack(title, text, channel, token, debug)
 
             # もうすぐ期限切れチケットのメッセージを送信
             title = header + '「もうすぐ期限切れチケット」'
             text = create_issue_message(title, soon)
-            send_message_to_slack(title, text, channel, webhook_url, debug)
+            send_message_to_slack(title, text, channel, token, debug)
 
             # チケット状況を保存
             summary.append({'component': component,
@@ -266,7 +258,7 @@ def main(username, password, webhook_url, token, debug):
             text += '{icon} *{component}* ({channel}) 期限切れ *{expired}* '\
                     'もうすぐ期限切れ *{soon}*\n'.format(**component)
         channel = PROJECT_CHANNEL[project]
-        send_message_to_slack(title, text, channel, webhook_url, debug)
+        send_message_to_slack(title, text, channel, token, debug)
 
 
 if __name__ == '__main__':
@@ -275,8 +267,7 @@ if __name__ == '__main__':
     config.read('config.ini')
     username = config['DEFAULT']['username']
     password = config['DEFAULT']['password']
-    webhook_url = config['DEFAULT']['webhook_url']
     token = config['DEFAULT']['token']
     debug = config['DEFAULT'].getboolean('debug')
 
-    main(username, password, webhook_url, token, debug)
+    main(username, password, token, debug)
