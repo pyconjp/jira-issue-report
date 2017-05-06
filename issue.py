@@ -54,7 +54,7 @@ FACES = ('┗┫￣皿￣┣┛', '┗┃￣□￣；┃┓ ',
          '┗┫＝皿[＋]┣┛')
 
 
-def issue_to_dict(jira, issue, users):
+def issue_to_dict(issue, users):
     """
     issue から必要な値を取り出して、いい感じの辞書にして返す
     """
@@ -100,7 +100,7 @@ def get_issues(jira, query, users):
     """
     issues = []
     for issue in jira.search_issues(query):
-        issues.append(issue_to_dict(jira, issue, users))
+        issues.append(issue_to_dict(issue, users))
 
     return issues
 
