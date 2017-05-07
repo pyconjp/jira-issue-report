@@ -178,7 +178,7 @@ def send_message_to_slack(title, text, channel, token, debug):
     """
     メッセージを Slack に送信
     """
-    print(text)
+
     url = SLACK_API + 'chat.postMessage'
     payload = {
         'token': token,
