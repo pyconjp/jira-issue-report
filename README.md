@@ -20,8 +20,8 @@ config.ini.sample
 # JIRA username / password
 username = JIRA username
 password = JIRA password
-# Slack webhook
-webhook_url = Slack webhook URL
+# Slack API token
+token = Slack API token
 # debug mode(True or False)
 debug = False
 ```
