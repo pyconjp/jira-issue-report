@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import configparser
-import json
 import random
 
 from jira import JIRA
@@ -13,14 +12,14 @@ QUERY = '''project = {project} AND status in (Open, "In Progress", Reopened)
 
 # プロジェクト名とコンポーネント、チャンネルの一覧
 PROJECTS = {
-    'TRI': [
+    'INU': [
         # (コンポーネント, チャンネル)
         (('0.全体', '9.その他'), '#2017'),
         ('1.事務局', '#t-jimukyoku'),
         ('2.会場', '#t-venue'),
-        ('3.プログラム', '#t-program'),
-        ('4.システム', '#t-system'),
-        ('5.デザイン・グッズ', '#t-design'),
+        ('3.システム', '#t-system'),
+        ('4.プログラム', '#t-program'),
+        ('5.デザイン', '#t-design'),
     ],
     'ISSHA': [
         ('一般社団法人', '#committee'),
@@ -30,7 +29,7 @@ PROJECTS = {
 
 # プロジェクトのメインチャンネル
 PROJECT_CHANNEL = {
-    'TRI': '#2017',
+    'INU': '#2018',
     'ISSHA': '#committee'
 }
 
@@ -140,7 +139,7 @@ def get_users_from_slack(token):
 
     response = requests.get(url, payload)
     json = response.json()
-    
+
     users = {m['profile'].get('email'): m['name'] for m in json['members']}
 
     return users
