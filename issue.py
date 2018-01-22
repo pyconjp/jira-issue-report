@@ -14,7 +14,7 @@ QUERY = '''project = {project} AND status in (Open, "In Progress", Reopened)
 PROJECTS = {
     'INU': [
         # (コンポーネント, チャンネル)
-        (('0.全体', '9.その他'), '#2017'),
+        (('0.全体', '9.その他'), '#2018'),
         ('1.事務局', '#t-jimukyoku'),
         ('2.会場', '#t-venue'),
         ('3.システム', '#t-system'),
