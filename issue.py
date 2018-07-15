@@ -18,7 +18,7 @@ PROJECTS = {
         ('1.事務局', '#t-jimukyoku'),
         ('2.会場', '#t-venue'),
         ('3.システム', '#t-system'),
-        ('4.プログラム', '#t-program'),
+        ('4.コンテンツ', '#t-contents'),
         ('5.デザイン', '#t-design'),
     ],
     'ISSHA': [
