@@ -75,7 +75,7 @@ def issue_to_dict(issue, users):
     # JIRA の id を Slack の id に変換する
     if email is not None and users is not None:
         issue_dict['slack'] = users.get(email, name)
-            
+        
     components = []
     for component in issue.raw['fields']['components']:
         components.append(component['name'])
@@ -149,7 +149,11 @@ def formatted_issue(issue_dict):
     """
     1件のissueを文字列にして返す
     """
-    issue_text = u"- {duedate} <{url}|{key}>: {summary}(@{slack})"
+    issue_text = "- {duedate} <{url}|{key}>: {summary}"
+    if 'slack' in issue_dict:
+        issue_text += "(@{slack})"
+    else:
+        issue_text += "(*担当者未設定*)"
     return issue_text.format(**issue_dict)
 
 
