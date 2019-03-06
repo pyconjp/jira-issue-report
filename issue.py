@@ -12,6 +12,15 @@ QUERY = '''project = {project} AND status in (Open, "In Progress", Reopened)
 
 # プロジェクト名とコンポーネント、チャンネルの一覧
 PROJECTS = {
+    'WYI': [
+        # (コンポーネント, チャンネル)
+        ('0.全体', '#2019'),
+        ('1.事務局', '#t-jimukyoku'),
+        ('2.コンテンツ', '#t-contents'),
+        ('3.会場', '#t-venue'),
+        ('4.システム', '#t-system'),
+        ('5.デザイン', '#t-design'),
+    ],
     'INU': [
         # (コンポーネント, チャンネル)
         (('0.全体', '9.その他'), '#2018'),
@@ -24,11 +33,13 @@ PROJECTS = {
     'ISSHA': [
         ('一般社団法人', '#committee'),
         ('Python Boot Camp', '#pycamp'),
+        ('Pycamp Caravan', '#pycamp-caravan'),
     ],
 }
 
 # プロジェクトのメインチャンネル
 PROJECT_CHANNEL = {
+    'WYI': '#2019',
     'INU': '#2018',
     'ISSHA': '#committee'
 }
@@ -222,15 +233,17 @@ def main(username, password, token, debug):
 
             header = '*{}/{}* の'.format(project, component)
 
-            # 期限切れチケットのメッセージを送信
-            title = header + '「期限切れチケット」'
-            text = create_issue_message(title, expired)
-            send_message_to_slack(title, text, channel, token, debug)
+            if expired:
+                # 期限切れチケットのメッセージを送信
+                title = header + '「期限切れチケット」'
+                text = create_issue_message(title, expired)
+                send_message_to_slack(title, text, channel, token, debug)
 
-            # もうすぐ期限切れチケットのメッセージを送信
-            title = header + '「もうすぐ期限切れチケット」'
-            text = create_issue_message(title, soon)
-            send_message_to_slack(title, text, channel, token, debug)
+            if soon:
+                # もうすぐ期限切れチケットのメッセージを送信
+                title = header + '「もうすぐ期限切れチケット」'
+                text = create_issue_message(title, soon)
+                send_message_to_slack(title, text, channel, token, debug)
 
             # チケット状況を保存
             summary.append({'component': component,
