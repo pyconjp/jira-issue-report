@@ -21,15 +21,6 @@ PROJECTS = {
         ('4.システム', '#t-system'),
         ('5.デザイン', '#t-design'),
     ],
-    'INU': [
-        # (コンポーネント, チャンネル)
-        (('0.全体', '9.その他'), '#2018'),
-        ('1.事務局', '#t-jimukyoku'),
-        ('2.会場', '#t-venue'),
-        ('3.システム', '#t-system'),
-        ('4.コンテンツ', '#t-contents'),
-        ('5.デザイン', '#t-design'),
-    ],
     'ISSHA': [
         ('一般社団法人', '#committee'),
         ('Python Boot Camp', '#pycamp'),
@@ -40,7 +31,6 @@ PROJECTS = {
 # プロジェクトのメインチャンネル
 PROJECT_CHANNEL = {
     'WYI': '#2019',
-    'INU': '#2018',
     'ISSHA': '#committee'
 }
 
