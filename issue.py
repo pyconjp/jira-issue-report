@@ -65,7 +65,7 @@ def issue_to_dict(issue, users):
     if assignee is None:
         name = None
     else:
-        name = assignee['name']
+        name = assignee.get('displayName')
 
     issue_dict = {
         'key': issue.raw['key'],
@@ -80,8 +80,8 @@ def issue_to_dict(issue, users):
         }
 
     # JIRA の id を Slack の id に変換する
-    issue_dict['slack'] = name
-        
+    # issue_dict['slack'] = name
+
     components = []
     for component in issue.raw['fields']['components']:
         components.append(component['name'])
@@ -158,6 +158,8 @@ def formatted_issue(issue_dict):
     issue_text = "- {duedate} <{url}|{key}>: {summary}"
     if 'slack' in issue_dict:
         issue_text += "(@{slack})"
+    elif 'name' in issue_dict:
+        issue_text += "({name})"
     else:
         issue_text += "(*担当者未設定*)"
     return issue_text.format(**issue_dict)
@@ -169,7 +171,7 @@ def create_issue_message(title, issues):
     """
     # 通知用のテキストを生成
     text = '{}ハ *{}件* デス{}\n'.format(title, len(issues), random.choice(FACES))
-    text += '(JIRAのREST APIの仕様変更により一部ユーザーにmentionできません)\n'
+    text += '(JIRAのREST APIの仕様変更によりmentionできなくなりました 2/26)\n'
     for issue in issues:
         text += formatted_issue(issue) + '\n'
 
