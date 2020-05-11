@@ -20,7 +20,7 @@ PROJECTS = {
         ('3.会場', '#t-venue'),
         ('4.システム', '#t-system'),
         ('5.デザイン', '#t-design'),
-        ('6.NOC', '#t-design'),
+        ('6.NOC', '#t-noc'),
         ('7.配信', '#t-streaming'),
     ],
     'ISSHA': [
