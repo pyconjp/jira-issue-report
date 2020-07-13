@@ -166,7 +166,7 @@ def create_issue_message(title, issues):
     """
     # 通知用のテキストを生成
     text = '{}ハ *{}件* デス{}\n'.format(title, len(issues), random.choice(FACES))
-    text += '> JIRAの氏名https://id.atlassian.com/manage-profile とSlackのFull nameを同一にするとここでメンションされるのでおすすめ(大文字小文字は無視) '
+    text += '> JIRAの氏名https://id.atlassian.com/manage-profile とSlackのFull nameを同一にするとここでメンションされるのでおすすめ(大文字小文字は無視)\n'
     for issue in issues:
         text += formatted_issue(issue) + '\n'
 
