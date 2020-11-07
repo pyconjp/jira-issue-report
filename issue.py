@@ -3,49 +3,44 @@
 import configparser
 import random
 
-from jira import JIRA
 import requests
+from jira import JIRA
 
 # issue を取得する QUERY
-QUERY = '''project = {project} AND status in (Open, "In Progress", Reopened)
- AND {due} ORDER BY due ASC, component ASC'''
+QUERY = """project = {project} AND status in (Open, "In Progress", Reopened)
+ AND {due} ORDER BY due ASC, component ASC"""
 
 # プロジェクト名とコンポーネント、チャンネルの一覧
 PROJECTS = {
-    'NEZ': [
+    "NEZ": [
         # (コンポーネント, チャンネル)
-        ('0.全体', '#2020'),
-        ('1.事務局', '#t-jimukyoku'),
-        ('2.コンテンツ', '#t-contents'),
-        ('3.会場', '#t-venue'),
-        ('4.システム', '#t-system'),
-        ('5.デザイン', '#t-design'),
-        ('6.NOC', '#t-noc'),
-        ('7.配信', '#t-streaming'),
+        ("0.全体", "#2020"),
+        ("1.事務局", "#t-jimukyoku"),
+        ("2.コンテンツ", "#t-contents"),
+        ("3.会場", "#t-venue"),
+        ("4.システム", "#t-system"),
+        ("5.デザイン", "#t-design"),
+        ("6.NOC", "#t-noc"),
+        ("7.配信", "#t-streaming"),
     ],
-    'ISSHA': [
-        ('一般社団法人', '#committee'),
-        ('Python Boot Camp', '#pycamp'),
-        ('Pycamp Caravan', '#pycamp-caravan'),
+    "ISSHA": [
+        ("一般社団法人", "#committee"),
+        ("Python Boot Camp", "#pycamp"),
+        ("Pycamp Caravan", "#pycamp-caravan"),
     ],
 }
 
 # プロジェクトのメインチャンネル
-PROJECT_CHANNEL = {
-    'NEZ': '#2020',
-    'ISSHA': '#committee'
-}
+PROJECT_CHANNEL = {"NEZ": "#2020", "ISSHA": "#committee"}
 
 # JIRA サーバー
-SERVER = 'https://pyconjp.atlassian.net'
+SERVER = "https://pyconjp.atlassian.net"
 
 # Slack API
-SLACK_API = 'https://slack.com/api/'
+SLACK_API = "https://slack.com/api/"
 
 # ロボット顔文字
-FACES = ('┗┫￣皿￣┣┛', '┗┃￣□￣；┃┓ ',
-         '┏┫￣皿￣┣┛', '┗┃・ ■ ・┃┛',
-         '┗┫＝皿[＋]┣┛')
+FACES = ("┗┫￣皿￣┣┛", "┗┃￣□￣；┃┓ ", "┏┫￣皿￣┣┛", "┗┃・ ■ ・┃┛", "┗┫＝皿[＋]┣┛")
 
 
 def issue_to_dict(issue, users):
@@ -53,33 +48,33 @@ def issue_to_dict(issue, users):
     issue から必要な値を取り出して、いい感じの辞書にして返す
     """
     # 担当者が存在しない場合はname,emailをNoneにする
-    assignee = issue.raw['fields']['assignee']
+    assignee = issue.raw["fields"]["assignee"]
     if assignee is None:
         name = None
     else:
-        name = assignee.get('displayName')
+        name = assignee.get("displayName")
 
     issue_dict = {
-        'key': issue.raw['key'],
-        'url': issue.permalink(),
-        'summary': issue.raw['fields']['summary'],
-        'created': issue.raw['fields']['created'],
-        'updated': issue.raw['fields']['updated'],
-        'duedate': issue.raw['fields']['duedate'],
-        'name': name,
-        'priority': issue.raw['fields']['priority']['name'],
-        'status': issue.raw['fields']['status']['name'],
-        }
+        "key": issue.raw["key"],
+        "url": issue.permalink(),
+        "summary": issue.raw["fields"]["summary"],
+        "created": issue.raw["fields"]["created"],
+        "updated": issue.raw["fields"]["updated"],
+        "duedate": issue.raw["fields"]["duedate"],
+        "name": name,
+        "priority": issue.raw["fields"]["priority"]["name"],
+        "status": issue.raw["fields"]["status"]["name"],
+    }
 
     # JIRA の displayNameを Slack の username に変換する
     if name.lower() in users:
-        issue_dict['slack'] = users[name.lower()]
+        issue_dict["slack"] = users[name.lower()]
 
     components = []
-    for component in issue.raw['fields']['components']:
-        components.append(component['name'])
-    issue_dict['components'] = components
-    issue_dict['component'] = u", ".join(issue_dict['components'])
+    for component in issue.raw["fields"]["components"]:
+        components.append(component["name"])
+    issue_dict["components"] = components
+    issue_dict["component"] = ", ".join(issue_dict["components"])
 
     return issue_dict
 
@@ -123,7 +118,7 @@ def get_issues_by_component(issues, component):
             component = set(component)
 
         # 関連するコンポーネントが存在するissueを抜き出す
-        if len(component & set(issue['components'])) > 0:
+        if len(component & set(issue["components"])) > 0:
             result.append(issue)
     return result
 
@@ -132,16 +127,16 @@ def get_users_from_slack(token):
     """
     Slack上のUserListを取得
     """
-    url = SLACK_API + 'users.list'
+    url = SLACK_API + "users.list"
 
-    payload = {'token': token}
+    payload = {"token": token}
 
     response = requests.get(url, payload)
     users_list = response.json()
 
     # real_nameをキー、slackのnameを値にした辞書を作成する
-    members = users_list['members']
-    users = {m['profile'].get('real_name').lower(): m['name'] for m in members}
+    members = users_list["members"]
+    users = {m["profile"].get("real_name").lower(): m["name"] for m in members}
 
     return users
 
@@ -151,9 +146,9 @@ def formatted_issue(issue_dict):
     1件のissueを文字列にして返す
     """
     issue_text = "- {duedate} <{url}|{key}>: {summary}"
-    if 'slack' in issue_dict:
+    if "slack" in issue_dict:
         issue_text += " (@{slack})"
-    elif 'name' in issue_dict:
+    elif "name" in issue_dict:
         issue_text += " ({name})"
     else:
         issue_text += " (*担当者未設定*)"
@@ -165,10 +160,15 @@ def create_issue_message(title, issues):
     チケットの一覧をメッセージを作成する
     """
     # 通知用のテキストを生成
-    text = '{}ハ *{}件* デス{}\n'.format(title, len(issues), random.choice(FACES))
-    text += '> JIRAの氏名(https://id.atlassian.com/manage-profile)とSlackのFull nameを同一にするとメンションされるのでおすすめ(大文字小文字は無視)\n'
+    text = f"{title}ハ *{len(issues)}件* デス{random.choice(FACES)}\n"
+    text += (
+        "> JIRAの氏名(<https://id.atlassian.com/manage-profile|"
+        "プロファイルとその公開範囲>)と"
+        "SlackのFull nameを同一にするとメンションされるので"
+        "おすすめ(大文字小文字は無視)\n"
+    )
     for issue in issues:
-        text += formatted_issue(issue) + '\n'
+        text += formatted_issue(issue) + "\n"
 
     return text
 
@@ -178,20 +178,20 @@ def send_message_to_slack(title, text, channel, token, debug):
     メッセージを Slack に送信
     """
 
-    url = SLACK_API + 'chat.postMessage'
+    url = SLACK_API + "chat.postMessage"
     payload = {
-        'token': token,
-        'channel': channel,
-        'username': 'JIRA bot',
-        'icon_emoji': ':jirabot:',
-        'fallback': title,
-        'text': text,
-        'mrkdwn': True,
-        'link_names': 1,
-        }
+        "token": token,
+        "channel": channel,
+        "username": "JIRA bot",
+        "icon_emoji": ":jirabot:",
+        "fallback": title,
+        "text": text,
+        "mrkdwn": True,
+        "link_names": 1,
+    }
     # debugモードの場合は slack-test に投げる
     if debug:
-        payload['channel'] = 'slack-test'
+        payload["channel"] = "slack-test"
     r = requests.post(url, payload)
     return r
 
@@ -202,7 +202,7 @@ def main(username, password, token, debug):
     """
 
     # JIRA に接続
-    options = {'server': SERVER}
+    options = {"server": SERVER}
     jira = JIRA(options=options, basic_auth=(username, password))
 
     # Slack から UserListを取得
@@ -211,64 +211,69 @@ def main(username, password, token, debug):
     # 対象となるJIRAプロジェクト: コンポーネントの一覧
     for project, components in PROJECTS.items():
         # 期限切れ(expired)、もうすぐ期限切れ(soon)のチケット一覧を取得
-        project_expired, project_soon = get_expired_issues(jira, project, users)
+        pj_expired, pj_soon = get_expired_issues(jira, project, users)
 
         # プロジェクトごとのチケット状況をまとめる
         summary = []
 
         # issueをコンポーネントごとに分ける
         for component, channel in components:
-            expired = get_issues_by_component(project_expired, component)
-            soon = get_issues_by_component(project_soon, component)
+            expired = get_issues_by_component(pj_expired, component)
+            soon = get_issues_by_component(pj_soon, component)
 
             if isinstance(component, tuple):
-                component = '、'.join(component)
+                component = "、".join(component)
 
-            header = '*{}/{}* の'.format(project, component)
+            header = f"*{project}/{component}* の"
 
             if expired:
                 # 期限切れチケットのメッセージを送信
-                title = header + '「期限切れチケット」'
+                title = header + "「期限切れチケット」"
                 text = create_issue_message(title, expired)
                 send_message_to_slack(title, text, channel, token, debug)
 
             if soon:
                 # もうすぐ期限切れチケットのメッセージを送信
-                title = header + '「もうすぐ期限切れチケット」'
+                title = header + "「もうすぐ期限切れチケット」"
                 text = create_issue_message(title, soon)
                 send_message_to_slack(title, text, channel, token, debug)
 
             # チケット状況を保存
-            summary.append({'component': component,
-                            'channel': channel,
-                            'expired': len(expired),
-                            'soon': len(soon),
-                            })
+            summary.append(
+                {
+                    "component": component,
+                    "channel": channel,
+                    "expired": len(expired),
+                    "soon": len(soon),
+                }
+            )
 
         # プロジェクト全体の状況をまとめる
-        title = 'チケット状況'
-        text = '*{}* ノチケット状況デス\n'.format(project)
+        title = "チケット状況"
+        text = f"*{project}* ノチケット状況デス\n"
         for component in summary:
             # 残りの件数によって天気マークを付ける
-            component['icon'] = ':sunny:'
-            if component['expired'] >= 10:
-                component['icon'] = ':umbrella:'
-            elif component['expired'] >= 5:
-                component['icon'] = ':cloud:'
+            component["icon"] = ":sunny:"
+            if component["expired"] >= 10:
+                component["icon"] = ":umbrella:"
+            elif component["expired"] >= 5:
+                component["icon"] = ":cloud:"
 
-            text += '{icon} *{component}* ({channel}) 期限切れ *{expired}* '\
-                    'もうすぐ期限切れ *{soon}*\n'.format(**component)
+            text += (
+                "{icon} *{component}* ({channel}) 期限切れ *{expired}* "
+                "もうすぐ期限切れ *{soon}*\n".format(**component)
+            )
         channel = PROJECT_CHANNEL[project]
         send_message_to_slack(title, text, channel, token, debug)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # config.ini からパラメーターを取得
     config = configparser.ConfigParser()
-    config.read('config.ini')
-    username = config['DEFAULT']['username']
-    password = config['DEFAULT']['password']
-    token = config['DEFAULT']['token']
-    debug = config['DEFAULT'].getboolean('debug')
+    config.read("config.ini")
+    username = config["DEFAULT"]["username"]
+    password = config["DEFAULT"]["password"]
+    token = config["DEFAULT"]["token"]
+    debug = config["DEFAULT"].getboolean("debug")
 
     main(username, password, token, debug)
