@@ -214,15 +214,15 @@ def main(username, password, token, debug):
     # 対象となるJIRAプロジェクト: コンポーネントの一覧
     for project, components in PROJECTS.items():
         # 期限切れ(expired)、もうすぐ期限切れ(soon)のチケット一覧を取得
-        project_expired, project_soon = get_expired_issues(jira, project, users)
+        pj_expired, pj_soon = get_expired_issues(jira, project, users)
 
         # プロジェクトごとのチケット状況をまとめる
         summary = []
 
         # issueをコンポーネントごとに分ける
         for component, channel in components:
-            expired = get_issues_by_component(project_expired, component)
-            soon = get_issues_by_component(project_soon, component)
+            expired = get_issues_by_component(pj_expired, component)
+            soon = get_issues_by_component(pj_soon, component)
 
             if isinstance(component, tuple):
                 component = '、'.join(component)
