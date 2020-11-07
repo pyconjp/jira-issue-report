@@ -165,8 +165,11 @@ def create_issue_message(title, issues):
     チケットの一覧をメッセージを作成する
     """
     # 通知用のテキストを生成
-    text = '{}ハ *{}件* デス{}\n'.format(title, len(issues), random.choice(FACES))
-    text += '> JIRAの氏名(https://id.atlassian.com/manage-profile)とSlackのFull nameを同一にするとメンションされるのでおすすめ(大文字小文字は無視)\n'
+    text = f'{title}ハ *{len(issues)}件* デス{random.choice(FACES)}\n'
+    text += ('> JIRAの氏名(<https://id.atlassian.com/manage-profile|'
+             'プロファイルとその公開範囲>)と'
+             'SlackのFull nameを同一にするとメンションされるので'
+             'おすすめ(大文字小文字は無視)\n')
     for issue in issues:
         text += formatted_issue(issue) + '\n'
 
@@ -224,7 +227,7 @@ def main(username, password, token, debug):
             if isinstance(component, tuple):
                 component = '、'.join(component)
 
-            header = '*{}/{}* の'.format(project, component)
+            header = f'*{project}/{component}* の'
 
             if expired:
                 # 期限切れチケットのメッセージを送信
@@ -247,7 +250,7 @@ def main(username, password, token, debug):
 
         # プロジェクト全体の状況をまとめる
         title = 'チケット状況'
-        text = '*{}* ノチケット状況デス\n'.format(project)
+        text = f'*{project}* ノチケット状況デス\n'
         for component in summary:
             # 残りの件数によって天気マークを付ける
             component['icon'] = ':sunny:'
