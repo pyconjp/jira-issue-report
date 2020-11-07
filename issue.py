@@ -3,8 +3,8 @@
 import configparser
 import random
 
-from jira import JIRA
 import requests
+from jira import JIRA
 
 # issue を取得する QUERY
 QUERY = """project = {project} AND status in (Open, "In Progress", Reopened)
