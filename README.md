@@ -1,21 +1,25 @@
 # JIRA Issue to Slack
 
-issue.py post JIRA issue list message to Slack channel.
+* PyCon JPのJIRAのissueをSlackに通知するプログラム
 
-```
+## 実行環境の構築
+
+* 以下の手順で実行環境が作成できます
+
+```bash
 $ git clone https://github.com/pyconjp/jira-issue-report.git
 $ cd jira-issue-report
 $ python3.8 -m venv env
 $ . env/bin/activate
-(env)$ pip install -r requirements.txt
-(env)$ cp config.ini.sample config.ini
-(env)$ vi config.ini
-(env)$ ./issue.py
+(env) $ pip install -r requirements.txt
+(env) $ cp config.ini.sample config.ini
+(env) $ vi config.ini
+(env) $ ./issue.py
 ```
 
-config.ini.sample
+* 以下の `config.ini.sample` を `config.ini` にコピーして、各種パスワードやトークンを設定します
 
-```
+```ini
 [DEFAULT]
 # JIRA username / password
 username = JIRA username
@@ -26,9 +30,29 @@ token = Slack API token
 debug = False
 ```
 
+## 開発環境の構築
+
+* 開発環境を構築する際は `requirements-dev.txt` を使用します。
+
+```bash
+$ git clone https://github.com/pyconjp/jira-issue-report.git
+$ cd jira-issue-report
+$ python3.8 -m venv env
+$ . env/bin/activate
+(env) $ pip install -r requirements-dev.txt
+(env) $ tox
+:
+___________________________________ summary ____________________________________
+  py38: commands succeeded
+  black: commands succeeded
+  flake8: commands succeeded
+  isort: commands succeeded
+  congratulations :)
+```
+
 ## Sample
 
-Sample of issue report
+* 以下のようなissueレポートがSlackに送信されます
 
 ```
 [13:34] 
