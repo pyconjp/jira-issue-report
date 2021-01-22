@@ -40,7 +40,7 @@ $ cd jira-issue-report
 $ python3.8 -m venv env
 $ . env/bin/activate
 (env) $ pip install -r requirements-dev.txt
-(env) $ tox
+(env) $ tox  # 全部チェックする場合
 :
 ___________________________________ summary ____________________________________
   py38: commands succeeded
@@ -48,6 +48,7 @@ ___________________________________ summary ____________________________________
   flake8: commands succeeded
   isort: commands succeeded
   congratulations :)
+(env) $ tox -elintcheck  # lintだけチェックする場合
 ```
 
 ## Sample
