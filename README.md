@@ -44,11 +44,13 @@ $ . env/bin/activate
 :
 ___________________________________ summary ____________________________________
   py38: commands succeeded
-  black: commands succeeded
-  flake8: commands succeeded
-  isort: commands succeeded
+  lintcheck: commands succeeded
   congratulations :)
 (env) $ tox -elintcheck  # lintだけチェックする場合
+:
+___________________________________ summary ____________________________________
+  lintcheck: commands succeeded
+  congratulations :)
 ```
 
 ## Sample
