@@ -27,6 +27,7 @@ PROJECTS = {
         ("一般社団法人", "#committee"),
         ("Python Boot Camp", "#pycamp"),
         ("Pycamp Caravan", "#pycamp-caravan"),
+        ("PyCon JP TV", "#pyconjptv準備室"),
     ],
 }
 
