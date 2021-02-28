@@ -12,18 +12,8 @@ QUERY = """project = {project} AND status in (Open, "In Progress", Reopened)
 
 # プロジェクト名とコンポーネント、チャンネルの一覧
 PROJECTS = {
-    "NEZ": [
-        # (コンポーネント, チャンネル)
-        ("0.全体", "#2020"),
-        ("1.事務局", "#t-jimukyoku"),
-        ("2.コンテンツ", "#t-contents"),
-        ("3.会場", "#t-venue"),
-        ("4.システム", "#t-system"),
-        ("5.デザイン", "#t-design"),
-        ("6.NOC", "#t-noc"),
-        ("7.配信", "#t-streaming"),
-    ],
     "ISSHA": [
+        # (コンポーネント, チャンネル)
         ("一般社団法人", "#committee"),
         ("Python Boot Camp", "#pycamp"),
         ("Pycamp Caravan", "#pycamp-caravan"),
@@ -32,7 +22,7 @@ PROJECTS = {
 }
 
 # プロジェクトのメインチャンネル
-PROJECT_CHANNEL = {"NEZ": "#2020", "ISSHA": "#committee"}
+PROJECT_CHANNEL = {"ISSHA": "#committee"}
 
 # JIRA サーバー
 SERVER = "https://pyconjp.atlassian.net"
