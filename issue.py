@@ -13,6 +13,7 @@ QUERY = """project = {project} AND status in (Open, "In Progress", Reopened)
 # プロジェクト名とコンポーネント、チャンネルの一覧
 PROJECTS = {
     "ISSHA": [
+        # (コンポーネント, チャンネル)
         ("一般社団法人", "#committee"),
         ("Python Boot Camp", "#pycamp"),
         ("Pycamp Caravan", "#pycamp-caravan"),
