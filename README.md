@@ -40,16 +40,27 @@ $ cd jira-issue-report
 $ python3.8 -m venv env
 $ . env/bin/activate
 (env) $ pip install -r requirements-dev.txt
+```
+
+* toxでisort, black, flake8, mypyのチェックが実行できます
+
+```bash
 (env) $ tox  # 全部チェックする場合
 :
 ___________________________________ summary ____________________________________
   py38: commands succeeded
   lintcheck: commands succeeded
+  mypy: commands succeeded
   congratulations :)
 (env) $ tox -elintcheck  # lintだけチェックする場合
 :
 ___________________________________ summary ____________________________________
   lintcheck: commands succeeded
+  congratulations :)
+(env) $ tox -emypy  # mypyだけチェックする場合
+:
+___________________________________ summary ____________________________________
+  mypy: commands succeeded
   congratulations :)
 ```
 

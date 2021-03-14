@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
+from __future__ import annotations
+
 import configparser
 import random
 
 import requests
-from jira import JIRA
+from jira import JIRA, Issue
+from requests.models import Response
 
 # issue を取得する QUERY
 QUERY = """project = {project} AND status in (Open, "In Progress", Reopened)
@@ -34,7 +37,7 @@ SLACK_API = "https://slack.com/api/"
 FACES = ("┗┫￣皿￣┣┛", "┗┃￣□￣；┃┓ ", "┏┫￣皿￣┣┛", "┗┃・ ■ ・┃┛", "┗┫＝皿[＋]┣┛")
 
 
-def issue_to_dict(issue, users):
+def issue_to_dict(issue: Issue, users: dict[str, str]) -> dict[str, str]:
     """
     issue から必要な値を取り出して、いい感じの辞書にして返す
     """
@@ -58,7 +61,7 @@ def issue_to_dict(issue, users):
     }
 
     # JIRA の displayNameを Slack の username に変換する
-    if name.lower() in users:
+    if name is not None and name.lower() in users:
         issue_dict["slack"] = users[name.lower()]
 
     components = []
@@ -70,7 +73,7 @@ def issue_to_dict(issue, users):
     return issue_dict
 
 
-def get_issues(jira, query, users):
+def get_issues(jira: JIRA, query: str, users: dict[str, str]) -> list[Issue]:
     """
     JIRAから指定されたqueryに合致するissueの一覧を返す
     """
@@ -81,7 +84,9 @@ def get_issues(jira, query, users):
     return issues
 
 
-def get_expired_issues(jira, project, users):
+def get_expired_issues(
+    jira: JIRA, project: str, users: dict[str, str]
+) -> tuple[list[dict[str, str]], list[dict[str, str]]]:
     """
     JIRAから期限切れ、もうすぐ期限切れのissueの一覧をかえす
     """
@@ -96,7 +101,9 @@ def get_expired_issues(jira, project, users):
     return expired, soon
 
 
-def get_issues_by_component(issues, component):
+def get_issues_by_component(
+    issues: list[dict[str, str]], component: str | tuple[str]
+) -> list[dict[str, str]]:
     """
     指定されたコンポーネント(複数の場合もある)に関連づいたissueを返す
     """
@@ -104,17 +111,17 @@ def get_issues_by_component(issues, component):
     for issue in issues:
         # コンポーネントを set に変換する
         if isinstance(component, str):
-            component = {component}
+            component_set = {component}
         else:
-            component = set(component)
+            component_set = set(component)
 
         # 関連するコンポーネントが存在するissueを抜き出す
-        if len(component & set(issue["components"])) > 0:
+        if len(component_set & set(issue["components"])) > 0:
             result.append(issue)
     return result
 
 
-def get_users_from_slack(token):
+def get_users_from_slack(token: str) -> dict[str, str]:
     """
     Slack上のUserListを取得
     """
@@ -132,7 +139,7 @@ def get_users_from_slack(token):
     return users
 
 
-def formatted_issue(issue_dict):
+def formatted_issue(issue_dict: dict[str, str]) -> str:
     """
     1件のissueを文字列にして返す
     """
@@ -146,7 +153,7 @@ def formatted_issue(issue_dict):
     return issue_text.format(**issue_dict)
 
 
-def create_issue_message(title, issues):
+def create_issue_message(title: str, issues: list[dict[str, str]]) -> str:
     """
     チケットの一覧をメッセージを作成する
     """
@@ -164,7 +171,9 @@ def create_issue_message(title, issues):
     return text
 
 
-def send_message_to_slack(title, text, channel, token, debug):
+def send_message_to_slack(
+    title: str, text: str, channel: str, token: str, debug: bool
+) -> Response:
     """
     メッセージを Slack に送信
     """
@@ -187,7 +196,7 @@ def send_message_to_slack(title, text, channel, token, debug):
     return r
 
 
-def main(username, password, token, debug):
+def main(username: str, password: str, token: str, debug: bool) -> None:
     """
     期限切れ、もうすぐ期限切れのチケットの一覧を取得してSlackで通知する
     """
@@ -205,7 +214,7 @@ def main(username, password, token, debug):
         pj_expired, pj_soon = get_expired_issues(jira, project, users)
 
         # プロジェクトごとのチケット状況をまとめる
-        summary = []
+        summaries = []
 
         # issueをコンポーネントごとに分ける
         for component, channel in components:
@@ -230,7 +239,7 @@ def main(username, password, token, debug):
                 send_message_to_slack(title, text, channel, token, debug)
 
             # チケット状況を保存
-            summary.append(
+            summaries.append(
                 {
                     "component": component,
                     "channel": channel,
@@ -242,17 +251,18 @@ def main(username, password, token, debug):
         # プロジェクト全体の状況をまとめる
         title = "チケット状況"
         text = f"*{project}* ノチケット状況デス\n"
-        for component in summary:
+        for summary in summaries:
             # 残りの件数によって天気マークを付ける
-            component["icon"] = ":sunny:"
-            if component["expired"] >= 10:
-                component["icon"] = ":umbrella:"
-            elif component["expired"] >= 5:
-                component["icon"] = ":cloud:"
+            summary["icon"] = ":sunny:"
+            if isinstance(summary["expired"], int):
+                if summary["expired"] >= 10:
+                    summary["icon"] = ":umbrella:"
+                elif summary["expired"] >= 5:
+                    summary["icon"] = ":cloud:"
 
             text += (
                 "{icon} *{component}* ({channel}) 期限切れ *{expired}* "
-                "もうすぐ期限切れ *{soon}*\n".format(**component)
+                "もうすぐ期限切れ *{soon}*\n".format(**summary)
             )
         channel = PROJECT_CHANNEL[project]
         send_message_to_slack(title, text, channel, token, debug)
