@@ -51,28 +51,16 @@ class IssueInfo:
     priority: str  # 優先度
     status: str  # 状態
     components: list
-    name: str  # 担当者名
-    slack: str  # slackの名前
+    name: str = ""  # 担当者名
+    slack: str = ""  # slackの名前
 
 
 def issue_to_issue_info(issue: Issue, users: dict[str, str]) -> IssueInfo:
     """
-    issue から必要な値を取り出して、いい感じの辞書にして返す
+    issue から必要な値を取り出して、IssueInfo形式にして返す
     """
-    # 担当者が存在しない場合はname,emailをNoneにする
-    assignee = issue.raw["fields"]["assignee"]
-    name = ""
-    if assignee is not None:
-        name = assignee.get("displayName")
-
-    # JIRA の displayNameを Slack の username に変換する
-    slack = ""
-    if name is not None and name.lower() in users:
-        slack = users[name.lower()]
-
-    components = []
-    for component in issue.raw["fields"]["components"]:
-        components.append(component["name"])
+    # コンポーネント名のリストを作成
+    components = [component["name"] for component in issue.raw["fields"]["components"]]
 
     issue_info = IssueInfo(
         key=issue.raw["key"],
@@ -83,10 +71,17 @@ def issue_to_issue_info(issue: Issue, users: dict[str, str]) -> IssueInfo:
         duedate=issue.raw["fields"]["duedate"],
         priority=issue.raw["fields"]["priority"]["name"],
         status=issue.raw["fields"]["status"]["name"],
-        name=name,
-        slack=slack,
         components=components,
     )
+
+    # 担当者が存在する場合はnameに名前を設定する
+    assignee = issue.raw["fields"]["assignee"]
+    if assignee is not None:
+        issue_info.name = assignee.get("displayName")
+
+        # nameがSlackに存在したら、Slackのreal_nameを設定する
+        if issue_info.name.lower() in users:
+            issue_info.slack = users[issue_info.name.lower()]
 
     return issue_info
 
@@ -124,14 +119,14 @@ def get_issue_infos_by_component(
     """
     指定されたコンポーネント(複数の場合もある)に関連づいたissue_infoを返す
     """
+    # コンポーネントを set に変換する
+    if isinstance(component, str):
+        component_set = {component}
+    else:
+        component_set = set(component)
+
     result = []
     for issue_info in issue_infos:
-        # コンポーネントを set に変換する
-        if isinstance(component, str):
-            component_set = {component}
-        else:
-            component_set = set(component)
-
         # 関連するコンポーネントが存在するissueを抜き出す
         if component_set & set(issue_info.components):
             result.append(issue_info)
@@ -141,6 +136,8 @@ def get_issue_infos_by_component(
 def get_users_from_slack(token: str) -> dict[str, str]:
     """
     Slack上のUserListを取得
+
+    API: https://api.slack.com/methods/users.list
     """
     url = SLACK_API + "users.list"
     payload = {"token": token}
