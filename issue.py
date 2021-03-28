@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import configparser
 import random
+from dataclasses import dataclass
 
 import requests
 from jira import JIRA, Issue
@@ -37,78 +38,95 @@ SLACK_API = "https://slack.com/api/"
 FACES = ("┗┫￣皿￣┣┛", "┗┃￣□￣；┃┓ ", "┏┫￣皿￣┣┛", "┗┃・ ■ ・┃┛", "┗┫＝皿[＋]┣┛")
 
 
-def issue_to_dict(issue: Issue, users: dict[str, str]) -> dict[str, str]:
+@dataclass
+class IssueInfo:
+    """JIRAの1課題分の情報を保持するクラス"""
+    key: str
+    url: str
+    summary: str
+    created: str
+    updated: str
+    duedate: str
+    priority: str
+    status: str
+    component: str
+    components: list
+    name: str
+    slack: str
+
+
+def issue_to_issue_info(issue: Issue, users: dict[str, str]) -> IssueInfo:
     """
     issue から必要な値を取り出して、いい感じの辞書にして返す
     """
     # 担当者が存在しない場合はname,emailをNoneにする
     assignee = issue.raw["fields"]["assignee"]
-    if assignee is None:
-        name = None
-    else:
+    name = ""
+    if assignee is not None:
         name = assignee.get("displayName")
 
-    issue_dict = {
-        "key": issue.raw["key"],
-        "url": issue.permalink(),
-        "summary": issue.raw["fields"]["summary"],
-        "created": issue.raw["fields"]["created"],
-        "updated": issue.raw["fields"]["updated"],
-        "duedate": issue.raw["fields"]["duedate"],
-        "name": name,
-        "priority": issue.raw["fields"]["priority"]["name"],
-        "status": issue.raw["fields"]["status"]["name"],
-    }
-
     # JIRA の displayNameを Slack の username に変換する
+    slack = ""
     if name is not None and name.lower() in users:
-        issue_dict["slack"] = users[name.lower()]
+        slack = users[name.lower()]
 
     components = []
     for component in issue.raw["fields"]["components"]:
         components.append(component["name"])
-    issue_dict["components"] = components
-    issue_dict["component"] = ", ".join(issue_dict["components"])
 
-    return issue_dict
+    issue_info = IssueInfo(
+        key=issue.raw["key"],
+        url=issue.permalink(),
+        summary=issue.raw["fields"]["summary"],
+        created=issue.raw["fields"]["created"],
+        updated=issue.raw["fields"]["updated"],
+        duedate=issue.raw["fields"]["duedate"],
+        priority=issue.raw["fields"]["priority"]["name"],
+        status=issue.raw["fields"]["status"]["name"],
+        name=name,
+        slack=slack,
+        components=components,
+        component=", ".join(components)
+    )
+
+    return issue_info
 
 
-def get_issues(jira: JIRA, query: str, users: dict[str, str]) -> list[Issue]:
+def get_issue_infos(jira: JIRA, query: str, users: dict[str, str]) -> list[IssueInfo]:
     """
     JIRAから指定されたqueryに合致するissueの一覧を返す
     """
-    issues = []
-    for issue in jira.search_issues(query):
-        issues.append(issue_to_dict(issue, users))
+    issues = jira.search_issues(query)
+    issue_infos = [issue_to_issue_info(issue, users) for issue in issues]
 
-    return issues
+    return issue_infos
 
 
 def get_expired_issues(
     jira: JIRA, project: str, users: dict[str, str]
-) -> tuple[list[dict[str, str]], list[dict[str, str]]]:
+) -> tuple[list[IssueInfo], list[IssueInfo]]:
     """
     JIRAから期限切れ、もうすぐ期限切れのissueの一覧をかえす
     """
     # 期限切れ
     expired_query = QUERY.format(project=project, due='due <= "0"')
-    expired = get_issues(jira, expired_query, users)
+    expired = get_issue_infos(jira, expired_query, users)
 
     # もうすぐ期限切れ
     soon_query = QUERY.format(project=project, due='due > "0" AND due <= 7d')
-    soon = get_issues(jira, soon_query, users)
+    soon = get_issue_infos(jira, soon_query, users)
 
     return expired, soon
 
 
-def get_issues_by_component(
-    issues: list[dict[str, str]], component: str | tuple[str]
-) -> list[dict[str, str]]:
+def get_issue_infos_by_component(
+    issue_infos: list[IssueInfo], component: str | tuple[str]
+) -> list[IssueInfo]:
     """
-    指定されたコンポーネント(複数の場合もある)に関連づいたissueを返す
+    指定されたコンポーネント(複数の場合もある)に関連づいたissue_infoを返す
     """
     result = []
-    for issue in issues:
+    for issue_info in issue_infos:
         # コンポーネントを set に変換する
         if isinstance(component, str):
             component_set = {component}
@@ -116,8 +134,8 @@ def get_issues_by_component(
             component_set = set(component)
 
         # 関連するコンポーネントが存在するissueを抜き出す
-        if len(component_set & set(issue["components"])) > 0:
-            result.append(issue)
+        if component_set & set(issue_info.components):
+            result.append(issue_info)
     return result
 
 
@@ -126,7 +144,6 @@ def get_users_from_slack(token: str) -> dict[str, str]:
     Slack上のUserListを取得
     """
     url = SLACK_API + "users.list"
-
     payload = {"token": token}
 
     response = requests.get(url, payload)
@@ -139,34 +156,34 @@ def get_users_from_slack(token: str) -> dict[str, str]:
     return users
 
 
-def formatted_issue(issue_dict: dict[str, str]) -> str:
+def formatted_issue_info(issue_info: IssueInfo) -> str:
     """
-    1件のissueを文字列にして返す
+    1件のissue_infoを文字列にして返す
     """
-    issue_text = "- {duedate} <{url}|{key}>: {summary}"
-    if "slack" in issue_dict:
-        issue_text += " (@{slack})"
-    elif "name" in issue_dict:
-        issue_text += " ({name})"
+    issue_text = f"- {issue_info.duedate} <{issue_info.url}|{issue_info.key}>: {issue_info.summary}"
+    if issue_info.slack is not None:
+        issue_text += f" (@{issue_info.slack})"
+    elif issue_info.name is not None:
+        issue_text += f" ({issue_info.name})"
     else:
         issue_text += " (*担当者未設定*)"
-    return issue_text.format(**issue_dict)
+    return issue_text
 
 
-def create_issue_message(title: str, issues: list[dict[str, str]]) -> str:
+def create_issue_message(title: str, issue_infos: list[IssueInfo]) -> str:
     """
     チケットの一覧をメッセージを作成する
     """
     # 通知用のテキストを生成
-    text = f"{title}ハ *{len(issues)}件* デス{random.choice(FACES)}\n"
+    text = f"{title}ハ *{len(issue_infos)}件* デス{random.choice(FACES)}\n"
     text += (
         "> JIRAの氏名(<https://id.atlassian.com/manage-profile|"
         "プロファイルとその公開範囲>)と"
         "SlackのFull nameを同一にするとメンションされるので"
         "おすすめ(大文字小文字は無視)\n"
     )
-    for issue in issues:
-        text += formatted_issue(issue) + "\n"
+    for issue_info in issue_infos:
+        text += formatted_issue_info(issue_info) + "\n"
 
     return text
 
@@ -218,8 +235,8 @@ def main(username: str, password: str, token: str, debug: bool) -> None:
 
         # issueをコンポーネントごとに分ける
         for component, channel in components:
-            expired = get_issues_by_component(pj_expired, component)
-            soon = get_issues_by_component(pj_soon, component)
+            expired = get_issue_infos_by_component(pj_expired, component)
+            soon = get_issue_infos_by_component(pj_soon, component)
 
             if isinstance(component, tuple):
                 component = "、".join(component)
