@@ -50,7 +50,6 @@ class IssueInfo:
     duedate: str  # 期日
     priority: str  # 優先度
     status: str  # 状態
-    component: str
     components: list
     name: str  # 担当者名
     slack: str  # slackの名前
@@ -87,7 +86,6 @@ def issue_to_issue_info(issue: Issue, users: dict[str, str]) -> IssueInfo:
         name=name,
         slack=slack,
         components=components,
-        component=", ".join(components),
     )
 
     return issue_info
@@ -163,9 +161,9 @@ def formatted_issue_info(issue_info: IssueInfo) -> str:
     """
     issue_text = f"- {issue_info.duedate} <{issue_info.url}|{issue_info.key}>: "
     issue_text = f"{issue_info.summary}"
-    if issue_info.slack is not None:
+    if issue_info.slack:
         issue_text += f" (@{issue_info.slack})"
-    elif issue_info.name is not None:
+    elif issue_info.name:
         issue_text += f" ({issue_info.name})"
     else:
         issue_text += " (*担当者未設定*)"
