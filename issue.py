@@ -41,18 +41,19 @@ FACES = ("┗┫￣皿￣┣┛", "┗┃￣□￣；┃┓ ", "┏┫￣皿￣�
 @dataclass
 class IssueInfo:
     """JIRAの1課題分の情報を保持するクラス"""
-    key: str
-    url: str
+
+    key: str  # 課題のキー(ISSHA-XXXX等)
+    url: str  # 課題のURL
     summary: str
-    created: str
-    updated: str
-    duedate: str
-    priority: str
-    status: str
+    created: str  # 作成日時
+    updated: str  # 更新日時
+    duedate: str  # 期日
+    priority: str  # 優先度
+    status: str  # 状態
     component: str
     components: list
-    name: str
-    slack: str
+    name: str  # 担当者名
+    slack: str  # slackの名前
 
 
 def issue_to_issue_info(issue: Issue, users: dict[str, str]) -> IssueInfo:
@@ -86,7 +87,7 @@ def issue_to_issue_info(issue: Issue, users: dict[str, str]) -> IssueInfo:
         name=name,
         slack=slack,
         components=components,
-        component=", ".join(components)
+        component=", ".join(components),
     )
 
     return issue_info
@@ -160,7 +161,8 @@ def formatted_issue_info(issue_info: IssueInfo) -> str:
     """
     1件のissue_infoを文字列にして返す
     """
-    issue_text = f"- {issue_info.duedate} <{issue_info.url}|{issue_info.key}>: {issue_info.summary}"
+    issue_text = f"- {issue_info.duedate} <{issue_info.url}|{issue_info.key}>: "
+    issue_text = f"{issue_info.summary}"
     if issue_info.slack is not None:
         issue_text += f" (@{issue_info.slack})"
     elif issue_info.name is not None:
