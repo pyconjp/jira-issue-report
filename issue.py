@@ -157,7 +157,7 @@ def formatted_issue_info(issue_info: IssueInfo) -> str:
     1件のissue_infoを文字列にして返す
     """
     issue_text = f"- {issue_info.duedate} <{issue_info.url}|{issue_info.key}>: "
-    issue_text = f"{issue_info.summary}"
+    issue_text += f"{issue_info.summary}"
     if issue_info.slack:
         issue_text += f" (@{issue_info.slack})"
     elif issue_info.name:
