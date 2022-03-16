@@ -23,10 +23,19 @@ PROJECTS = {
         ("Pycamp Caravan", "#pycamp-caravan"),
         ("PyCon JP TV", "#pyconjptv準備室"),
     ],
+    "TRA": [
+        ("0.全体", "#2022"),
+        ("1.事務局", "#2022-jimukyoku"),
+        ("2.コンテンツ", "#2022-contents"),
+        ("3.会場", "#2022-venue"),
+        ("4.システム", "#2022-system"),
+        ("5.デザイン", "#2022-design"),
+        ("6.会計", "#2022-budget"),
+    ],
 }
 
 # プロジェクトのメインチャンネル
-PROJECT_CHANNEL = {"ISSHA": "#committee"}
+PROJECT_CHANNEL = {"ISSHA": "#committee", "TRA": "#2022"}
 
 # JIRA サーバー
 SERVER = "https://pyconjp.atlassian.net"
