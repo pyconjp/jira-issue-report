@@ -24,7 +24,7 @@ PROJECTS = {
         ("PyCon JP TV", "#pyconjptv準備室"),
     ],
     "USA": [
-        ("0.全体", "#2023"),
+        ("0. 全体", "#2023"),
         ("1. 予算・会計", "#2023-t-budget"),
         ("2. コンテンツ", "#2023-t-contents"),
         ("3. デザイン", "#2023-t-design"),
@@ -37,7 +37,7 @@ PROJECTS = {
 }
 
 # プロジェクトのメインチャンネル
-PROJECT_CHANNEL = {"ISSHA": "#committee", "TRA": "#2022"}
+PROJECT_CHANNEL = {"ISSHA": "#committee", "USA": "#2023"}
 
 # JIRA サーバー
 SERVER = "https://pyconjp.atlassian.net"
