@@ -23,10 +23,6 @@ PROJECTS = {
         ("Pycamp Caravan", "#pycamp-caravan"),
         ("PyCon JP TV", "#pyconjptv準備室"),
     ],
-    "TAT": [
-        ("0. 全体", "#2024"),
-        ("6. 会計", "#2024-t-account"),
-    ],
     "HBI": [
         ("0. 全体", "#2025"),
         # ("1. 会場", "#2025-t-venue"),
