@@ -34,7 +34,7 @@ PROJECTS = {
 }
 
 # プロジェクトのメインチャンネル
-PROJECT_CHANNEL = {"ISSHA": "#committee", "TAT": "#2024"}
+PROJECT_CHANNEL = {"ISSHA": "#committee", "HBI": "#2025"}
 
 # JIRA サーバー
 SERVER = "https://pyconjp.atlassian.net"
