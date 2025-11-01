@@ -9,7 +9,7 @@
 ```bash
 $ git clone https://github.com/pyconjp/jira-issue-report.git
 $ cd jira-issue-report
-$ python3.8 -m venv env
+$ python3.12 -m venv env
 $ . env/bin/activate
 (env) $ pip install -r requirements.txt
 (env) $ cp config.ini.sample config.ini
@@ -37,7 +37,7 @@ debug = False
 ```bash
 $ git clone https://github.com/pyconjp/jira-issue-report.git
 $ cd jira-issue-report
-$ python3.8 -m venv env
+$ python3.12 -m venv env
 $ . env/bin/activate
 (env) $ pip install -r requirements-dev.txt
 ```
