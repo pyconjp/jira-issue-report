@@ -32,10 +32,23 @@ PROJECTS = {
         ("5. 広報チーム", "#2025-t-pr"),
         ("6. スポンサーチーム", "#2025-t-sponsor"),
     ],
+    "HRS": [
+        ("全体", "#2026"),
+        ("会場", "#2026"),
+        ("参加者管理", "#2026"),
+        ("プログラム", "#2026"),
+        ("スポンサー", "#2026"),
+        ("広報", "#2026"),
+        ("その他", "#2026"),
+    ],
 }
 
 # プロジェクトのメインチャンネル
-PROJECT_CHANNEL = {"ISSHA": "#committee", "HBI": "#2025"}
+PROJECT_CHANNEL = {
+    "ISSHA": "#committee",
+    "HBI": "#2025",
+    "HRS": "#2026",
+}
 
 # JIRA サーバー
 SERVER = "https://pyconjp.atlassian.net"
@@ -70,6 +83,10 @@ def issue_to_issue_info(issue: Issue, users: dict[str, str]) -> IssueInfo:
     """
     # コンポーネント名のリストを作成
     components = [component["name"] for component in issue.raw["fields"]["components"]]
+
+    # HRSのプロジェクトではカテゴリーはカスタムフィールド
+    if issue.raw["key"].startswith("HRS"):
+        components = [issue.fields.customfield_11397.value]
 
     issue_info = IssueInfo(
         key=issue.raw["key"],
