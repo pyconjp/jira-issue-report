@@ -23,15 +23,6 @@ PROJECTS = {
         ("Pycamp Caravan", "#pycamp-caravan"),
         ("PyCon JP TV", "#pyconjptv準備室"),
     ],
-    "HBI": [
-        ("0. 全体", "#2025"),
-        ("1. 座長チーム", "#2025-t-chairs"),
-        ("2. 会場チーム", "#2025-t-venue"),
-        ("3. 参加者管理チーム", "#2025-t-attendee"),
-        ("4. プログラムチーム", "#2025-t-program"),
-        ("5. 広報チーム", "#2025-t-pr"),
-        ("6. スポンサーチーム", "#2025-t-sponsor"),
-    ],
     "HRS": [
         ("全体", "#2026"),
         ("会場", "#2026"),
@@ -46,7 +37,6 @@ PROJECTS = {
 # プロジェクトのメインチャンネル
 PROJECT_CHANNEL = {
     "ISSHA": "#committee",
-    "HBI": "#2025",
     "HRS": "#2026",
 }
 
